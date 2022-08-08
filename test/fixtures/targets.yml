@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  quantity: 1
+  price: 9.99
+  multiplier: 1.5
+  position: one
+
+two:
+  quantity: 1
+  price: 9.99
+  multiplier: 1.5
+  position: two
