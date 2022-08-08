@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  side: 1
+  symbol: MyString
+  raw_order: 
+  quantity: 1
+  price: 9.99
+  position: one
+
+two:
+  side: 1
+  symbol: MyString
+  raw_order: 
+  quantity: 1
+  price: 9.99
+  position: two
