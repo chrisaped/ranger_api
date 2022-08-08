@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_08_08_145954) do
+ActiveRecord::Schema[7.0].define(version: 2022_08_08_151241) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -37,5 +37,16 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_08_145954) do
     t.decimal "initial_price"
   end
 
+  create_table "targets", force: :cascade do |t|
+    t.integer "quantity"
+    t.decimal "price"
+    t.float "multiplier"
+    t.bigint "position_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["position_id"], name: "index_targets_on_position_id"
+  end
+
   add_foreign_key "orders", "positions"
+  add_foreign_key "targets", "positions"
 end
