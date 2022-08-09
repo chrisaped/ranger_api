@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_08_08_151241) do
+ActiveRecord::Schema[7.0].define(version: 2022_08_09_113831) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -44,6 +44,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_08_151241) do
     t.bigint "position_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "fulfilled", default: false
     t.index ["position_id"], name: "index_targets_on_position_id"
   end
 
