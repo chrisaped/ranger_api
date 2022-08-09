@@ -1,5 +1,8 @@
 class PositionsController < ApplicationController
-  def create
-    render json: { status: 'position created'}
+  def process
+    puts "here are the process params:"
+    p params
+    # handle the order response
+    # render json: handled_order_response
   end
 end
