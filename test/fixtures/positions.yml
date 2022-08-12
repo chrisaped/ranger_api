@@ -13,7 +13,7 @@ two:
   status: 0
   initial_quantity: 100
   symbol: GME
-  side: 0
+  side: 1
   current_quantity: 67
   initial_price: 30.0
   risk_per_share: 0.25
