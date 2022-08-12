@@ -71,6 +71,36 @@ class PositionTest < ActiveSupport::TestCase
     assert third_target.quantity == 223
   end
 
+  test "update_quantity_from_order increases current_quantity if order has same side" do
+    position = positions(:one)
+    assert position.open?
+    assert position.current_quantity == 100
+    assert position.long?
+
+    order_side = 'buy'
+    order_quantity = 100
+
+    position.update_quantity_from_order(order_side, order_quantity)
+
+    assert position.open?
+    assert position.current_quantity == 200
+  end
+
+  test "update_quantity_from_order decreases current_quantity if order has different side" do
+    position = positions(:one)
+    assert position.open?
+    assert position.current_quantity == 100
+    assert position.long?
+
+    order_side = 'sell'
+    order_quantity = 100
+
+    position.update_quantity_from_order(order_side, order_quantity)
+
+    assert position.closed?
+    assert position.current_quantity == 0
+  end
+
   def position_obj(attrs = {})
     {
       status: :open,

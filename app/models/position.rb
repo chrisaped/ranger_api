@@ -7,7 +7,30 @@ class Position < ApplicationRecord
 
   after_create :create_targets
 
+  def update_quantity_from_order(order_side, order_quantity)
+    if is_same_side_as_order(order_side)
+      self.current_quantity += order_quantity
+    else
+      self.current_quantity -= order_quantity
+    end
+
+    close_if_zero_quantity
+  end
+
   private
+
+  def is_same_side_as_order(order_side)
+    order_side = determine_order_side(order_side)
+    order_side == side
+  end
+
+  def determine_order_side(order_side)
+    order_side == 'buy' ? 'long' : 'short'
+  end
+
+  def close_if_zero_quantity
+    self.status = :closed if current_quantity == 0
+  end
 
   def create_targets
     Target::MULTIPLIERS.each do |multiplier|

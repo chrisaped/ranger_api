@@ -32,14 +32,4 @@ class Order < ApplicationRecord
   def determine_position_side
     side == 'buy' ? 'long' : 'short'
   end
-
-  # move this method to position model?
-  def update_position(position)
-    if @side != position.side
-      # subtract from existing position
-
-    else
-      # add to existing position
-    end
-  end
 end
