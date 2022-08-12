@@ -3,5 +3,5 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "articles#index"
-  post '/process_position', to: 'positions#process'
+  post '/process_order', to: 'orders#process'
 end
