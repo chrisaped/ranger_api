@@ -7,49 +7,69 @@ class PositionTest < ActiveSupport::TestCase
     end
   end
 
-  test "3 targets are created after a position is created" do
-    assert_difference -> { Position.count } => 1, -> { Target.count } => 3 do
+  test "4 targets are created after a position is created" do
+    assert_difference -> { Position.count } => 1, -> { Target.count } => 4 do
       Position.create!(position_obj)
     end    
   end
 
-  test "3 targets created have the correct multipliers" do
+  test "4 targets created have the correct categories" do
     position = Position.create!(position_obj)
 
     first_target = position.targets[0]
     second_target = position.targets[1]
     third_target = position.targets[2]
+    stop_target = position.targets[3]
+
+    assert first_target.profit?
+    assert second_target.profit?
+    assert third_target.profit?
+    assert stop_target.stop?
+  end
+
+  test "4 targets created have the correct multipliers" do
+    position = Position.create!(position_obj)
+
+    first_target = position.targets[0]
+    second_target = position.targets[1]
+    third_target = position.targets[2]
+    stop_target = position.targets[3]
 
     assert first_target.multiplier == 1.0
     assert second_target.multiplier == 2.0
     assert third_target.multiplier == 3.0
+    assert stop_target.multiplier.nil?
   end
 
-  test "3 targets create have the correct quantities" do
+  test "4 targets created have the correct quantities" do
     position = Position.create!(position_obj)
 
     first_target = position.targets[0]
     second_target = position.targets[1]
     third_target = position.targets[2]
+    stop_target = position.targets[3]
 
     assert first_target.quantity == 200
     assert second_target.quantity == 200
     assert third_target.quantity == 200
+    assert stop_target.quantity == position.initial_quantity
   end
 
-  test "3 targets have the correct prices" do
+  test "4 targets have the correct prices" do
     position = Position.create!(position_obj)
 
     first_target = position.targets[0]
     second_target = position.targets[1]
     third_target = position.targets[2]
+    stop_target = position.targets[3]
 
     assert first_target.price == 30.50
     assert second_target.price == 31.00
     assert third_target.price == 31.50
+    assert stop_target.price == 29.50
   end
 
-  test "3 targets create have the correct quantities with an odd number" do
+  test "4 targets created have the correct quantities with an odd number" do
     new_quantity = 667
     risk_per_share = 0.45
     position = Position.create!(position_obj({
@@ -65,10 +85,12 @@ class PositionTest < ActiveSupport::TestCase
     first_target = position.targets[0]
     second_target = position.targets[1]
     third_target = position.targets[2]
+    stop_target = position.targets[3]
 
     assert first_target.quantity == 222
     assert second_target.quantity == 222
     assert third_target.quantity == 223
+    assert stop_target.quantity == new_quantity
   end
 
   test "update_quantity_from_order increases current_quantity if order has same side" do

@@ -34,16 +34,26 @@ class Position < ApplicationRecord
 
   def create_targets
     multipliers = Target::MULTIPLIERS
+    
     multipliers.each do |multiplier|
       last_multiplier = multipliers[-1]
       multipliers_length = multipliers.length
 
+      # profit targets
       self.targets.create!(
         quantity: set_target_quantity(multiplier, last_multiplier, multipliers_length),
         price: set_target_price(multiplier),
-        multiplier: multiplier
+        multiplier: multiplier,
+        category: :profit
       )
     end
+
+    # stop target
+    self.targets.create!(
+      quantity: initial_quantity,
+      price: stop_price,
+      category: :stop
+    )
   end
 
   def set_target_quantity(multiplier, last_multiplier, multipliers_length)
@@ -55,5 +65,9 @@ class Position < ApplicationRecord
 
   def set_target_price(multiplier)
     initial_price + (risk_per_share * multiplier)
+  end
+
+  def stop_price
+    initial_price - risk_per_share
   end
 end
