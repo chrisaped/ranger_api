@@ -33,9 +33,10 @@ class Position < ApplicationRecord
   end
 
   def create_targets
-    Target::MULTIPLIERS.each do |multiplier|
-      last_multiplier = Target::MULTIPLIERS[-1]
-      multipliers_length = Target::MULTIPLIERS.length
+    multipliers = Target::MULTIPLIERS
+    multipliers.each do |multiplier|
+      last_multiplier = multipliers[-1]
+      multipliers_length = multipliers.length
 
       self.targets.create!(
         quantity: set_target_quantity(multiplier, last_multiplier, multipliers_length),
