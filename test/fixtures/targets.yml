@@ -1,13 +1,32 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  quantity: 1
-  price: 9.99
-  multiplier: 1.5
+  quantity: 200
+  price: 30.50
+  multiplier: 1.0
   position: one
+  side: 1 #sell
+  category: 0 #profit
 
 two:
-  quantity: 1
-  price: 9.99
-  multiplier: 1.5
-  position: two
+  quantity: 200
+  price: 31.00
+  multiplier: 2.0
+  position: one
+  side: 1 #sell
+  category: 0 #profit
+
+three:
+  quantity: 200
+  price: 31.50
+  multiplier: 3.0
+  position: one
+  side: 1 #sell
+  category: 0 #profit
+
+stop:
+  quantity: 600
+  price: 29.50
+  position: one
+  side: 1 #sell
+  category: 1 #stop

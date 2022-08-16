@@ -2,12 +2,12 @@
 
 one:
   status: 0
-  initial_quantity: 100
+  initial_quantity: 600
   symbol: GME
   side: 0
-  current_quantity: 100
+  current_quantity: 600
   initial_price: 30.0
-  risk_per_share: 0.25
+  risk_per_share: 0.50
 
 two:
   status: 0
