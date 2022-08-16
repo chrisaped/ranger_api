@@ -27,7 +27,8 @@ class OrderTest < ActiveSupport::TestCase
   def new_order_json(attrs = {})
     file = File.join(Rails.root, 'test', 'data_samples', 'new_order.json')
     json = File.read(file)
-    json.deep_merge(attrs)
+    json_obj = JSON.parse(json)
+    json_obj.deep_merge(attrs).to_json
   end
 
   def order_obj(attrs = {})
