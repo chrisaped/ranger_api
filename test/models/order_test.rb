@@ -15,17 +15,19 @@ class OrderTest < ActiveSupport::TestCase
   test "create_or_update_position creates a new position" do
     order = Order.new(order_obj)
     risk_per_share = 0.50
+    json_obj = JSON.parse(new_order_json)
     
     assert_difference -> { Position.count } => 1 do
-      order.create_or_update_position(risk_per_share)
+      order.create_or_update_position(risk_per_share, json_obj)
     end
 
     assert_not order.position.nil?
   end
 
-  def new_order_json
+  def new_order_json(attrs = {})
     file = File.join(Rails.root, 'test', 'data_samples', 'new_order.json')
-    File.read(file)
+    json = File.read(file)
+    json.deep_merge(attrs)
   end
 
   def order_obj(attrs = {})
