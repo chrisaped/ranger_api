@@ -71,6 +71,45 @@ class OrderTest < ActiveSupport::TestCase
     assert stop_target.price == (price - position.risk_per_share)
   end
 
+  test 'create_or_update_position sets stop target as filled' do
+    position = positions(:one)
+
+    stop_order = order_json('stop_order')
+    json_obj = JSON.parse(stop_order)
+
+    quantity = json_obj.dig('qty').to_i
+    price = json_obj.dig('price').to_d 
+    side = json_obj.dig('order', 'side')
+
+    stop_target = Target.find_by(position: position, filled: false, category: 'stop')
+    assert_not stop_target.filled?
+    assert stop_target.quantity == position.current_quantity
+    assert stop_target.price == (position.initial_price - position.risk_per_share)
+    
+    order_attrs = {
+      side: side,
+      symbol: json_obj.dig('order', 'symbol'),
+      raw_order: stop_order,
+      quantity: quantity,
+      price: price
+    }
+    order = Order.new(order_attrs)
+    
+    assert_difference -> { Position.count } => 0 do
+      order.create_or_update_position(position.risk_per_share, json_obj)
+    end
+
+    position = order.position
+    total_quantity = json_obj.dig('position_qty').to_i
+    assert position.current_quantity == total_quantity
+    
+    all_profit_targets = Target.where(position: position, filled: false, category: 'profit')
+    assert all_profit_targets.count == 3
+
+    stop_target = Target.find_by(position: position, filled: true, category: 'stop')
+    assert stop_target.filled?
+  end
+
   def find_target(quantity, price, position, filled, side, category)
     Target.find_by(
       quantity: quantity,
