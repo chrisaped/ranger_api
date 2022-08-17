@@ -6,17 +6,15 @@ class OrdersController < ApplicationController
     risk_per_share = params.dig('risk_per_share')
     order_json = params.dig('order')
     
-    json_obj = JSON.parse(order_json)
-    order_obj = json_obj.dig('order')
-    
-    @event = json_obj.dig('event')
-    
-    
-    if @event == 'fill'
-      # the fill event conditional should go in the server.js
+    json_obj = JSON.parse(order_json)        
+    order_status = json_obj.dig('order', 'status')
+
+    order =  { error: "no order" }
+
+    if order_status == 'filled'
       # create order
-      order = Order.new(order_params(order_obj, order_json))
-      order.create_or_update_position(risk_per_share)
+      order = Order.new(order_params(json_obj, order_json))
+      order.create_or_update_position(risk_per_share, json_obj)
       order.save!
     end
 
@@ -25,13 +23,13 @@ class OrdersController < ApplicationController
 
   private
 
-  def order_params(order_obj, order_json)
+  def order_params(json_obj, order_json)
     {
-      side: order_obj.dig('side'),
-      symbol: order_obj.dig('symbol'),
+      side: json_obj.dig('order', 'side'),
+      symbol: json_obj.dig('order', 'symbol'),
       raw_order: order_json,
-      quantity: order_obj.dig('filled_qty').to_i,
-      price: order_obj.dig('filled_avg_price').to_d 
+      quantity: json_obj.dig('qty').to_i,
+      price: json_obj.dig('price').to_d 
     }
   end
 end
