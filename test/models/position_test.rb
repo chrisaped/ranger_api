@@ -93,46 +93,27 @@ class PositionTest < ActiveSupport::TestCase
     assert stop_target.quantity == new_quantity
   end
 
-  test "update_quantity_from_order increases current_quantity if order has same side" do
+  test "update_quantity_from_order sets current_quantity" do
     position = positions(:one)
     assert position.open?
     assert position.current_quantity == 600
-    assert position.long?
 
-    order_side = 'buy'
-    order_quantity = 100
+    total_quantity = 300
 
-    position.update_quantity_from_order(order_side, order_quantity)
+    position.update_quantity_from_order(total_quantity)
 
     assert position.open?
-    assert position.current_quantity == 700
+    assert position.current_quantity == 300
   end
 
-  test "update_quantity_from_order decreases current_quantity if order has different side" do
+  test "update_quantity_from_order sets current_quantity and closes the position" do
     position = positions(:one)
     assert position.open?
     assert position.current_quantity == 600
-    assert position.long?
 
-    order_side = 'sell'
-    order_quantity = 100
+    total_quantity = 0
 
-    position.update_quantity_from_order(order_side, order_quantity)
-
-    assert position.open?
-    assert position.current_quantity == 500
-  end
-
-  test "update_quantity_from_order decreases current_quantity and closes the position" do
-    position = positions(:one)
-    assert position.open?
-    assert position.current_quantity == 600
-    assert position.long?
-
-    order_side = 'sell'
-    order_quantity = 600
-
-    position.update_quantity_from_order(order_side, order_quantity)
+    position.update_quantity_from_order(total_quantity)
 
     assert position.closed?
     assert position.current_quantity == 0
