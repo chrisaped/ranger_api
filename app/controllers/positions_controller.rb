@@ -1,12 +1,14 @@
 class PositionsController < ApplicationController
   def create
-    puts "here are the params:"
+    puts "here are the position params:"
     p params
 
     position_json = params.dig('position')
     position_obj = JSON.parse(position_json)
 
-    create_position(position_obj)
+    position = create_position(position_obj)
+
+    render json: position
   end
 
   private

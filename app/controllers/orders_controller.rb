@@ -1,6 +1,6 @@
 class OrdersController < ApplicationController
-  def fetch_positions
-    puts "here are the params:"
+  def create
+    puts "here are the order params:"
     p params
 
     risk_per_share = params.dig('risk_per_share')
@@ -39,7 +39,7 @@ class OrdersController < ApplicationController
       positions_array << create_position_state(position)
     end
 
-    positions_array.to_json
+    positions_array
   end
 
   def create_position_state(position)

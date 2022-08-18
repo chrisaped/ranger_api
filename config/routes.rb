@@ -3,6 +3,6 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "articles#index"
-  post '/fetch_positions', to: 'orders#fetch_positions'
   post '/create_position', to: 'positions#create'
+  post '/create_order', to: 'orders#create'
 end
