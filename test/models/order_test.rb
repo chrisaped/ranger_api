@@ -12,21 +12,7 @@ class OrderTest < ActiveSupport::TestCase
     end
   end
 
-  test "create_or_update_position creates a new position" do
-    order = Order.new(order_obj)
-    risk_per_share = 0.50
-
-    json = order_json('new_order')
-    json_obj = JSON.parse(json)
-    
-    assert_difference -> { Position.count } => 1 do
-      order.create_or_update_position(risk_per_share, json_obj)
-    end
-
-    assert_not order.position.nil?
-  end
-
-  test "create_or_update_position updates an existing position" do
+  test "update_position updates an existing position" do
     position = positions(:one)
     assert position.initial_quantity == position.current_quantity
 
@@ -41,7 +27,7 @@ class OrderTest < ActiveSupport::TestCase
     assert_not stop_target.filled?
     assert stop_target.quantity == position.current_quantity
     assert stop_target.price == (position.initial_price - position.risk_per_share)
-    
+
     order_attrs = {
       side: side,
       symbol: json_obj.dig('order', 'symbol'),
@@ -52,7 +38,7 @@ class OrderTest < ActiveSupport::TestCase
     order = Order.new(order_attrs)
     
     assert_difference -> { Position.count } => 0 do
-      order.create_or_update_position(position.risk_per_share, json_obj)
+      order.update_position(json_obj)
     end
 
     position = order.position
@@ -71,7 +57,7 @@ class OrderTest < ActiveSupport::TestCase
     assert stop_target.price == (price - position.risk_per_share)
   end
 
-  test 'create_or_update_position sets stop target as filled' do
+  test 'update_position sets stop target as filled' do
     position = positions(:one)
 
     stop_order = order_json('stop_order')
@@ -96,7 +82,7 @@ class OrderTest < ActiveSupport::TestCase
     order = Order.new(order_attrs)
     
     assert_difference -> { Position.count } => 0 do
-      order.create_or_update_position(position.risk_per_share, json_obj)
+      order.update_position(json_obj)
     end
 
     position = order.position

@@ -1,5 +1,5 @@
 class OrdersController < ApplicationController
-  def fetch_position_state
+  def fetch_positions
     puts "here are the params:"
     p params
 
@@ -9,17 +9,15 @@ class OrdersController < ApplicationController
     json_obj = JSON.parse(order_json)        
     order_status = json_obj.dig('order', 'status')
 
-    position_state = {}.to_json
-
     if order_status == 'filled'
       order = Order.new(order_params(json_obj, order_json))
-      order.create_or_update_position(risk_per_share, json_obj)
+      order.update_position(json_obj)
       order.save!
-
-      position_state = create_position_state(order.position)
     end
 
-    render json: position_state
+    positions = generate_positions
+
+    render json: positions
   end
 
   private
@@ -32,6 +30,16 @@ class OrdersController < ApplicationController
       quantity: json_obj.dig('qty').to_i,
       price: json_obj.dig('price').to_d 
     }
+  end
+
+  def generate_positions
+    positions_array = []
+
+    Position.open.order(:created_at).each do |position|
+      positions_array << create_position_state(position)
+    end
+
+    positions_array.to_json
   end
 
   def create_position_state(position)
@@ -49,6 +57,6 @@ class OrdersController < ApplicationController
     stop_target = Target.find_by(position: position, category: 'stop')
     position_state_obj[:stop_target] = stop_target
 
-    position_state_obj.to_json
+    position_state_obj
   end
 end
