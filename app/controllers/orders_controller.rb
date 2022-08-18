@@ -1,6 +1,6 @@
 class OrdersController < ApplicationController
-  def process
-    puts "here are the process params:"
+  def fetch_position_state
+    puts "here are the params:"
     p params
 
     risk_per_share = params.dig('risk_per_share')
@@ -9,16 +9,17 @@ class OrdersController < ApplicationController
     json_obj = JSON.parse(order_json)        
     order_status = json_obj.dig('order', 'status')
 
-    order =  { error: "no order" }
+    position_state = {}.to_json
 
     if order_status == 'filled'
-      # create order
       order = Order.new(order_params(json_obj, order_json))
       order.create_or_update_position(risk_per_share, json_obj)
       order.save!
+
+      position_state = create_position_state(order.position)
     end
 
-    render json: order
+    render json: position_state
   end
 
   private
@@ -31,5 +32,23 @@ class OrdersController < ApplicationController
       quantity: json_obj.dig('qty').to_i,
       price: json_obj.dig('price').to_d 
     }
+  end
+
+  def create_position_state(position)
+    position_state_obj = {
+      position: position,
+      profit_targets: {},
+      stop_target: {}
+    }
+    
+    profit_targets = Target.where(position: position, category: 'profit').order(:created_at)
+    profit_targets.each do |profit_target|
+      position_state_obj[:profit_targets][profit_target.multiplier.to_sym] = profit_target
+    end
+    
+    stop_target = Target.find_by(position: position, category: 'stop')
+    position_state_obj[:stop_target] = stop_target
+
+    position_state_obj.to_json
   end
 end
