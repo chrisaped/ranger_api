@@ -1,28 +1,22 @@
 class PositionsController < ApplicationController
   def create
-    puts "here are the position params:"
-    p params
-
-    position_json = params.dig('position')
-    position_obj = JSON.parse(position_json)
-
-    position = create_position(position_obj)
+    position = create_position(params)
 
     render json: position
   end
 
   private
 
-  def create_position(position_obj)
+  def create_position(params)
     Position.create!(
-      initial_quantity: position_obj.dig('qty'),
-      symbol: position_obj.dig('symbol'),
-      side: determine_position_side(position_obj.dig('side')),
-      current_quantity: position_obj.dig('qty'),
-      initial_price: position_obj.dig('limitPrice'),
+      initial_quantity: params.dig('qty').to_i,
+      symbol: params.dig('symbol'),
+      side: determine_position_side(params.dig('side')),
+      current_quantity: params.dig('qty').to_i,
+      initial_price: params.dig('limit_price').to_d,
       risk_per_share: calculate_risk_per_share(
-        position_obj.dig('limitPrice'),
-        position_obj.dig('stopPrice')
+        params.dig('limit_price').to_d,
+        params.dig('stop_price').to_d
       )
     )    
   end
@@ -32,7 +26,7 @@ class PositionsController < ApplicationController
   end
 
   def calculate_risk_per_share(initial_price, stop_price)
-    (initial_price.to_d - stop_price.to_d).abs
+    (initial_price - stop_price).abs
   end
 end
 
