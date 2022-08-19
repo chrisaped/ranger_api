@@ -119,6 +119,36 @@ class PositionTest < ActiveSupport::TestCase
     assert position.current_quantity == 0
   end
 
+  test "create_state works" do
+    position = positions(:one)
+    position_state = position.create_state
+    
+    assert position_state.has_key?('risk_per_share')
+    assert position_state.has_key?('profit_targets')
+    assert position_state.has_key?('stop_target')
+    
+    just_position_state = get_just_position_state(position_state)
+    assert just_position_state == position.attributes
+
+    profit_targets = get_profit_targets(position)
+    assert position_state['profit_targets'] == profit_targets 
+
+    stop_target = get_stop_target(position)
+    assert position_state['stop_target'] == stop_target
+  end
+
+  def get_just_position_state(position_state)
+    position_state.select { |key, value| !['profit_targets', 'stop_target'].include?(key) }
+  end
+
+  def get_profit_targets(position)
+    position.targets.select { |target| target.profit? }.sort_by(&:created_at)
+  end
+
+  def get_stop_target(position)
+    position.targets.select { |target| target.stop? }.first
+  end
+
   def position_obj(attrs = {})
     {
       status: :open,

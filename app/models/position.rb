@@ -16,6 +16,28 @@ class Position < ApplicationRecord
     self
   end
 
+  def self.generate_states
+    positions_array = []
+
+    Position.open.order(:created_at).each do |position|
+      positions_array << position.create_state
+    end
+
+    positions_array
+  end
+
+  def create_state
+    position_state_obj = self.attributes
+    
+    profit_targets = targets.select { |target| target.profit? }.sort_by(&:created_at)
+    position_state_obj['profit_targets'] = profit_targets
+    
+    stop_target = targets.select { |target| target.stop? }.first
+    position_state_obj['stop_target'] = stop_target
+
+    position_state_obj
+  end
+
   private
 
   def close_if_zero_quantity
