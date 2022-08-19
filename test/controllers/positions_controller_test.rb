@@ -6,7 +6,13 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
       post create_position_path, params: position_params
     end
 
-    assert_equal Position.last.to_json, @response.body
+    assert_equal 201, @response.status
+  end
+
+  test "get_positions works" do
+    get get_positions_path
+
+    assert_equal Position.generate_states.to_json, @response.body
   end
 
   def position_params

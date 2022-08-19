@@ -6,7 +6,7 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
       post create_order_path, params: order_params
     end
 
-    assert_equal Position.generate_states.to_json, @response.body
+    assert_equal 201, @response.status
   end
 
   def order_params
