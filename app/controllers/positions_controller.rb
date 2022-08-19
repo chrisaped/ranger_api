@@ -1,8 +1,12 @@
 class PositionsController < ApplicationController
   def create
     position = create_position(params)
+    render status: 201
+  end
 
-    render json: position
+  def get_positions
+    positions = Position.generate_states
+    render json: positions
   end
 
   private

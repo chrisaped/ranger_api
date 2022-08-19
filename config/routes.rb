@@ -5,4 +5,5 @@ Rails.application.routes.draw do
   # root "articles#index"
   post '/create_position', to: 'positions#create'
   post '/create_order', to: 'orders#create'
+  get '/get_positions', to: 'positions#get_positions'
 end

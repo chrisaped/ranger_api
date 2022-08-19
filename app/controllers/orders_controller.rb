@@ -8,9 +8,7 @@ class OrdersController < ApplicationController
       order.save!
     end
 
-    positions = Position.generate_states
-
-    render json: positions
+    render status: 201
   end
 
   private
