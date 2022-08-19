@@ -1,62 +1,27 @@
 class OrdersController < ApplicationController
-  def create
-    puts "here are the order params:"
-    p params
-
-    risk_per_share = params.dig('risk_per_share')
-    order_json = params.dig('order')
-    
-    json_obj = JSON.parse(order_json)        
-    order_status = json_obj.dig('order', 'status')
+  def create    
+    order_status = params.dig('order', 'status')
 
     if order_status == 'filled'
-      order = Order.new(order_params(json_obj, order_json))
-      order.update_position(json_obj)
+      order = Order.new(order_params(params))
+      order.update_position(params)
       order.save!
     end
 
-    positions = generate_positions
+    positions = Position.generate_states
 
     render json: positions
   end
 
   private
 
-  def order_params(json_obj, order_json)
+  def order_params(params)
     {
-      side: json_obj.dig('order', 'side'),
-      symbol: json_obj.dig('order', 'symbol'),
-      raw_order: order_json,
-      quantity: json_obj.dig('qty').to_i,
-      price: json_obj.dig('price').to_d 
+      side: params.dig('order', 'side'),
+      symbol: params.dig('order', 'symbol'),
+      raw_order: params,
+      quantity: params.dig('qty').to_i,
+      price: params.dig('price').to_d 
     }
-  end
-
-  def generate_positions
-    positions_array = []
-
-    Position.open.order(:created_at).each do |position|
-      positions_array << create_position_state(position)
-    end
-
-    positions_array
-  end
-
-  def create_position_state(position)
-    position_state_obj = {
-      position: position,
-      profit_targets: {},
-      stop_target: {}
-    }
-    
-    profit_targets = Target.where(position: position, category: 'profit').order(:created_at)
-    profit_targets.each do |profit_target|
-      position_state_obj[:profit_targets][profit_target.multiplier.to_sym] = profit_target
-    end
-    
-    stop_target = Target.find_by(position: position, category: 'stop')
-    position_state_obj[:stop_target] = stop_target
-
-    position_state_obj
   end
 end

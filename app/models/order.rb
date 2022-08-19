@@ -29,7 +29,7 @@ class Order < ApplicationRecord
     if target
       target.update_from_order(total_quantity)
     else
-      puts "no target found"
+      puts "no applicable target"
     end
   end
 
