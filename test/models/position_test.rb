@@ -142,7 +142,7 @@ class PositionTest < ActiveSupport::TestCase
     assert position.open?
     assert position.symbol == 'GME'
 
-    new_attrs = { side: :short }
+    new_attrs = { side: :short, symbol: 'GME' }
     new_position = Position.new(position_obj(new_attrs))
     assert new_position.open?
     assert new_position.symbol == 'GME'
@@ -167,7 +167,7 @@ class PositionTest < ActiveSupport::TestCase
     {
       status: :open,
       initial_quantity: 600,
-      symbol: 'GME',
+      symbol: 'AMC',
       side: :long,
       current_quantity: 600,
       initial_price: 30.0,

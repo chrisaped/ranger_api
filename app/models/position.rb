@@ -5,7 +5,7 @@ class Position < ApplicationRecord
   enum status: %i[open closed], _default: :open
   enum side: %i[long short]
 
-  validate :prevent_duplicate_open_position
+  validate :prevent_duplicate_open_position, on: :create
 
   after_create :create_targets
 
