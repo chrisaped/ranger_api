@@ -137,6 +137,20 @@ class PositionTest < ActiveSupport::TestCase
     assert position_state['stop_target'] == stop_target
   end
 
+  test "can not create an additional open position for the same symbol" do
+    position = positions(:one)
+    assert position.open?
+    assert position.symbol == 'GME'
+
+    new_attrs = { side: :short }
+    new_position = Position.new(position_obj(new_attrs))
+    assert new_position.open?
+    assert new_position.symbol == 'GME'
+
+    assert_not new_position.valid?
+    assert_not new_position.errors[:symbol].empty?
+  end
+
   def get_just_position_state(position_state)
     position_state.select { |key, value| !['profit_targets', 'stop_target'].include?(key) }
   end

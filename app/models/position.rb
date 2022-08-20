@@ -5,6 +5,8 @@ class Position < ApplicationRecord
   enum status: %i[open closed], _default: :open
   enum side: %i[long short]
 
+  validate :prevent_duplicate_open_position
+
   after_create :create_targets
 
   def update_quantity_from_order(total_quantity)
@@ -39,6 +41,11 @@ class Position < ApplicationRecord
   end
 
   private
+
+  def prevent_duplicate_open_position
+    duplicate_open_position = Position.open.find_by(symbol: symbol)
+    errors.add(:symbol, "can't create a duplicate open position") if duplicate_open_position
+  end
 
   def close_if_zero_quantity
     self.status = :closed if current_quantity == 0
