@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_08_16_072809) do
+ActiveRecord::Schema[7.0].define(version: 2022_08_20_082841) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -19,7 +19,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_16_072809) do
     t.string "symbol"
     t.json "raw_order"
     t.integer "quantity"
-    t.decimal "price"
+    t.float "price"
     t.bigint "position_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -34,13 +34,13 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_16_072809) do
     t.integer "current_quantity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.decimal "initial_price"
-    t.decimal "risk_per_share"
+    t.float "initial_price"
+    t.float "risk_per_share"
   end
 
   create_table "targets", force: :cascade do |t|
     t.integer "quantity"
-    t.decimal "price"
+    t.float "price"
     t.float "multiplier"
     t.bigint "position_id", null: false
     t.datetime "created_at", null: false
