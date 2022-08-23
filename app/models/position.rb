@@ -22,20 +22,24 @@ class Position < ApplicationRecord
     positions_array = []
 
     Position.open.order(:created_at).each do |position|
-      positions_array << position.create_state
+      positions_array << position.create_state if position.targets.length > 0
     end
 
     positions_array
   end
 
   def create_state
-    position_state_obj = self.attributes
+    position_state_obj = convert_to_hash_with_floats(self)
     
     profit_targets = targets.select { |target| target.profit? }.sort_by(&:created_at)
-    position_state_obj['profit_targets'] = profit_targets
+    converted_profit_targets = profit_targets.map do |profit_target|
+      convert_to_hash_with_floats(profit_target)
+    end
+    position_state_obj['profit_targets'] = converted_profit_targets
     
     stop_target = targets.select { |target| target.stop? }.first
-    position_state_obj['stop_target'] = stop_target
+    converted_stop_target = convert_to_hash_with_floats(stop_target)
+    position_state_obj['stop_target'] = converted_stop_target
 
     position_state_obj
   end
@@ -65,6 +69,12 @@ class Position < ApplicationRecord
   end
 
   private
+
+  def convert_to_hash_with_floats(obj)
+    obj.attributes.transform_values do |value|
+      value.class == BigDecimal ? value.to_f : value
+    end    
+  end
 
   def calculate_risk_per_share
     (initial_filled_avg_price - initial_stop_price).abs
