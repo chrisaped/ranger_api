@@ -7,15 +7,15 @@ class Position < ApplicationRecord
 
   validate :prevent_duplicate_open_position, on: :create
 
-  after_create :create_targets
+  def add_risk_per_share
+    self.risk_per_share = calculate_risk_per_share
+  end
 
   def update_quantity_from_order(total_quantity)
-    self.current_quantity = total_quantity
-
-    close_if_zero_quantity
-
-    self.save!
-    self
+    if current_quantity != total_quantity
+      self.current_quantity = total_quantity
+      close_if_zero_quantity
+    end    
   end
 
   def self.generate_states
@@ -40,17 +40,6 @@ class Position < ApplicationRecord
     position_state_obj
   end
 
-  private
-
-  def prevent_duplicate_open_position
-    duplicate_open_position = Position.open.find_by(symbol: symbol)
-    errors.add(:symbol, "can't create a duplicate open position") if duplicate_open_position
-  end
-
-  def close_if_zero_quantity
-    self.status = :closed if current_quantity == 0
-  end
-
   def create_targets
     multipliers = Target::MULTIPLIERS
     
@@ -70,9 +59,24 @@ class Position < ApplicationRecord
     # stop target
     self.targets.create!(
       quantity: initial_quantity,
-      price: stop_price,
+      price: initial_stop_price,
       category: :stop
     )
+  end
+
+  private
+
+  def calculate_risk_per_share
+    (initial_filled_avg_price - initial_stop_price).abs
+  end
+
+  def prevent_duplicate_open_position
+    duplicate_open_position = Position.open.find_by(symbol: symbol)
+    errors.add(:symbol, "can't create a duplicate open position") if duplicate_open_position
+  end
+
+  def close_if_zero_quantity
+    self.status = :closed if current_quantity == 0
   end
 
   def set_target_quantity(multiplier, last_multiplier, multipliers_length)
@@ -83,10 +87,6 @@ class Position < ApplicationRecord
   end
 
   def set_target_price(multiplier)
-    initial_price + (risk_per_share * multiplier)
-  end
-
-  def stop_price
-    initial_price - risk_per_share
+    initial_filled_avg_price + (risk_per_share * multiplier)
   end
 end
