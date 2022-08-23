@@ -30,7 +30,7 @@ class Order < ApplicationRecord
       order_type = json_obj.dig('order', 'type')
       target = find_target(order_type, position)
       raise "target not found" if target.nil?
-      target.update_from_order(total_quantity)
+      target.update_from_order(total_quantity, filled_avg_price)
     else
       position.create_targets
     end

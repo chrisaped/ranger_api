@@ -8,8 +8,8 @@ class Target < ApplicationRecord
 
   before_create :add_side
 
-  def update_from_order(total_quantity)
-    set_as_filled
+  def update_from_order(total_quantity, filled_avg_price)
+    self.update_columns(filled: true, filled_avg_price: filled_avg_price)
 
     if profit?
       stop = find_position_stop
@@ -18,10 +18,6 @@ class Target < ApplicationRecord
   end
 
   private
-
-  def set_as_filled
-    self.update_columns(filled: true)
-  end
 
   def find_position_stop
     Target.find_by(

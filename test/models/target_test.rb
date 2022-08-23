@@ -37,6 +37,7 @@ class TargetTest < ActiveSupport::TestCase
 
     first_target = position.targets.first
     assert_not first_target.filled?
+    assert first_target.filled_avg_price.nil?
     assert first_target.quantity == 200
     assert first_target.price == 30.50
     assert first_target.sell?
@@ -56,9 +57,11 @@ class TargetTest < ActiveSupport::TestCase
     assert stop_target.sell?
 
     total_quantity = sell_order_json_obj.dig('position_qty').to_i
+    filled_avg_price = sell_order_json_obj.dig('order', 'filled_avg_price')
 
-    first_target.update_from_order(total_quantity)
+    first_target.update_from_order(total_quantity, filled_avg_price)
     assert first_target.filled?
+    assert_not first_target.filled_avg_price.nil?
 
     stop_target = Target.find(stop_target_id)
     assert stop_target.quantity == total_quantity
@@ -83,16 +86,20 @@ class TargetTest < ActiveSupport::TestCase
     stop_target_id = stop_target.id
 
     total_quantity = 400
-    first_target.update_from_order(total_quantity)
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
     assert first_target.filled?
+    assert_not first_target.filled_avg_price.nil?
 
     stop_target = Target.find(stop_target_id)
     assert stop_target.quantity == total_quantity
     assert stop_target.price == (first_target.price - position.risk_per_share)
 
     total_quantity = 200
-    second_target.update_from_order(total_quantity)
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
     assert second_target.filled?
+    assert_not second_target.filled_avg_price.nil?
 
     stop_target = Target.find(stop_target_id)
     assert stop_target.quantity == total_quantity
@@ -102,8 +109,10 @@ class TargetTest < ActiveSupport::TestCase
     assert position.closed?
 
     total_quantity = 0
-    third_target.update_from_order(total_quantity)
+    filled_avg_price = third_target.price
+    third_target.update_from_order(total_quantity, filled_avg_price)
     assert third_target.filled?
+    assert_not third_target.filled_avg_price.nil?
 
     stop_target = Target.find(stop_target_id)
     assert stop_target.quantity == third_target.quantity
