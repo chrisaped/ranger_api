@@ -19,11 +19,11 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_21_090412) do
     t.string "symbol"
     t.json "raw_order"
     t.integer "quantity"
-    t.float "price"
+    t.decimal "price", precision: 6, scale: 2
     t.bigint "position_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.float "filled_avg_price"
+    t.decimal "filled_avg_price", precision: 6, scale: 2
     t.index ["position_id"], name: "index_orders_on_position_id"
   end
 
@@ -35,15 +35,15 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_21_090412) do
     t.integer "current_quantity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.float "initial_price"
-    t.float "risk_per_share"
-    t.float "initial_filled_avg_price"
-    t.float "initial_stop_price"
+    t.decimal "initial_price", precision: 6, scale: 2
+    t.decimal "risk_per_share", precision: 6, scale: 2
+    t.decimal "initial_filled_avg_price", precision: 6, scale: 2
+    t.decimal "initial_stop_price", precision: 6, scale: 2
   end
 
   create_table "targets", force: :cascade do |t|
     t.integer "quantity"
-    t.float "price"
+    t.decimal "price", precision: 6, scale: 2
     t.float "multiplier"
     t.bigint "position_id", null: false
     t.datetime "created_at", null: false
@@ -51,7 +51,7 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_21_090412) do
     t.boolean "filled", default: false
     t.integer "side"
     t.integer "category"
-    t.float "filled_avg_price"
+    t.decimal "filled_avg_price", precision: 6, scale: 2
     t.index ["position_id"], name: "index_targets_on_position_id"
   end
 

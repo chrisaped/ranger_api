@@ -5,7 +5,7 @@ class CreateOrders < ActiveRecord::Migration[7.0]
       t.string :symbol
       t.json :raw_order
       t.integer :quantity
-      t.decimal :price
+      t.decimal :price, precision: 6, scale: 2
       t.references :position, null: false, foreign_key: true
 
       t.timestamps
