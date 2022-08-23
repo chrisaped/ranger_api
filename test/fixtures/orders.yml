@@ -3,15 +3,17 @@
 one:
   side: 1
   symbol: MyString
-  raw_order: 
+  raw_order:
   quantity: 1
   price: 9.99
   position: one
+  filled_avg_price: 9.99
 
 two:
   side: 1
   symbol: MyString
-  raw_order: 
+  raw_order:
   quantity: 1
   price: 9.99
   position: two
+  filled_avg_price: 9.99

@@ -8,6 +8,8 @@ one:
   current_quantity: 600
   initial_price: 30.0
   risk_per_share: 0.50
+  initial_filled_avg_price: 30.0
+  initial_stop_price: 29.50
 
 two:
   status: 0
@@ -17,3 +19,5 @@ two:
   current_quantity: 67
   initial_price: 300.0
   risk_per_share: 0.25
+  initial_filled_avg_price: 300.0
+  initial_stop_price: 299.75
