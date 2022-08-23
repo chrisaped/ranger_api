@@ -12,16 +12,51 @@ class OrderTest < ActiveSupport::TestCase
     end
   end
 
+  test "update_position raises an error if there is no position" do
+    order = Order.new(order_obj)
+
+    sell_order = order_json('sell_order')
+
+    assert_raise(Exception) do
+      order.update_position(sell_order)
+    end
+  end
+
+  test "update_position updates position and creates targets for a new order" do
+    position = Position.create!(position_obj)
+    assert position.open?
+    initial_quantity = position.initial_quantity
+    assert position.current_quantity == initial_quantity
+    assert position.initial_filled_avg_price.nil?
+    assert position.risk_per_share.nil?
+    assert position.targets.empty?
+
+    new_attrs = {
+      "order" => {
+        "symbol" => "AMC"
+      }
+    }
+    new_order_params = order_json('new_order', new_attrs)
+    order = Order.new(order_params(new_order_params))
+    order.update_position(new_order_params)
+    position = order.position
+
+    assert position.open?
+    assert position.current_quantity == initial_quantity
+    assert_not position.initial_filled_avg_price.nil?
+    assert_not position.risk_per_share.nil?
+    assert position.targets.length == 4
+  end
+
   test "update_position updates an existing position" do
     position = positions(:one)
     assert position.initial_quantity == position.current_quantity
 
     sell_order = order_json('sell_order')
-    json_obj = JSON.parse(sell_order)
 
-    quantity = json_obj.dig('qty').to_i
-    price = json_obj.dig('price').to_d 
-    side = json_obj.dig('order', 'side')
+    quantity = sell_order.dig('qty').to_i
+    price = sell_order.dig('price').to_d 
+    side = sell_order.dig('order', 'side')
 
     stop_target = Target.find_by(position: position, filled: false, category: 'stop')
     assert_not stop_target.filled?
@@ -30,7 +65,7 @@ class OrderTest < ActiveSupport::TestCase
 
     order_attrs = {
       side: side,
-      symbol: json_obj.dig('order', 'symbol'),
+      symbol: sell_order.dig('order', 'symbol'),
       raw_order: sell_order,
       quantity: quantity,
       price: price
@@ -38,11 +73,11 @@ class OrderTest < ActiveSupport::TestCase
     order = Order.new(order_attrs)
     
     assert_difference -> { Position.count } => 0 do
-      order.update_position(json_obj)
+      order.update_position(sell_order)
     end
 
     position = order.position
-    total_quantity = json_obj.dig('position_qty').to_i
+    total_quantity = sell_order.dig('position_qty').to_i
     assert position.current_quantity == total_quantity
     
     first_profit_target = find_target(quantity, price, position, true, side, 'profit')
@@ -61,11 +96,10 @@ class OrderTest < ActiveSupport::TestCase
     position = positions(:one)
 
     stop_order = order_json('stop_order')
-    json_obj = JSON.parse(stop_order)
 
-    quantity = json_obj.dig('qty').to_i
-    price = json_obj.dig('price').to_d 
-    side = json_obj.dig('order', 'side')
+    quantity = stop_order.dig('qty').to_i
+    price = stop_order.dig('price').to_d 
+    side = stop_order.dig('order', 'side')
 
     stop_target = Target.find_by(position: position, filled: false, category: 'stop')
     assert_not stop_target.filled?
@@ -74,7 +108,7 @@ class OrderTest < ActiveSupport::TestCase
     
     order_attrs = {
       side: side,
-      symbol: json_obj.dig('order', 'symbol'),
+      symbol: stop_order.dig('order', 'symbol'),
       raw_order: stop_order,
       quantity: quantity,
       price: price
@@ -82,11 +116,11 @@ class OrderTest < ActiveSupport::TestCase
     order = Order.new(order_attrs)
     
     assert_difference -> { Position.count } => 0 do
-      order.update_position(json_obj)
+      order.update_position(stop_order)
     end
 
     position = order.position
-    total_quantity = json_obj.dig('position_qty').to_i
+    total_quantity = stop_order.dig('position_qty').to_i
     assert position.current_quantity == total_quantity
     
     all_profit_targets = Target.where(position: position, filled: false, category: 'profit')
@@ -111,7 +145,7 @@ class OrderTest < ActiveSupport::TestCase
     file = File.join(Rails.root, 'test', 'data_samples', "#{name}.json")
     json = File.read(file)
     json_obj = JSON.parse(json)
-    json_obj.deep_merge(attrs).to_json
+    json_obj.deep_merge(attrs)
   end
 
   def order_obj(attrs = {})
@@ -122,5 +156,28 @@ class OrderTest < ActiveSupport::TestCase
       quantity: 31,
       price: 863.8 
     }.deep_merge(attrs)
+  end
+
+  def position_obj(attrs = {})
+    {
+      status: :open,
+      initial_quantity: 600,
+      symbol: 'AMC',
+      side: :long,
+      current_quantity: 600,
+      initial_price: 30.0,
+      initial_stop_price: 29.50
+    }.deep_merge(attrs)
+  end
+
+  def order_params(params)
+    {
+      side: params.dig('order', 'side'),
+      symbol: params.dig('order', 'symbol'),
+      raw_order: params,
+      quantity: params.dig('qty').to_i,
+      price: params.dig('price').to_d,
+      filled_avg_price: params.dig('order', 'filled_avg_price').to_d
+    }
   end
 end

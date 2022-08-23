@@ -5,31 +5,34 @@ class Order < ApplicationRecord
 
   def update_position(json_obj)
     position = Position.find_by(status: :open, symbol: symbol)
+    raise "position not found" if position.nil?
 
-    if position.nil?
-      puts "position not found"
-    else
-      # position exists
-      total_quantity = json_obj.dig('position_qty').to_i
+    total_quantity = json_obj.dig('position_qty').to_i
+    position.update_quantity_from_order(total_quantity)
 
-      position = position.update_quantity_from_order(total_quantity)
-      
-      update_position_targets(json_obj, total_quantity, position)
+    if position.initial_filled_avg_price.nil?
+      position.initial_filled_avg_price = filled_avg_price
     end
+  
+    position.add_risk_per_share if position.risk_per_share.nil?
+
+    position.save!
+    
+    create_or_update_position_targets(json_obj, total_quantity, position)
 
     self.position = position
   end
 
   private
 
-  def update_position_targets(json_obj, total_quantity, position)
-    order_type = json_obj.dig('order', 'type')
-    target = find_target(order_type, position)
-
-    if target
+  def create_or_update_position_targets(json_obj, total_quantity, position)
+    if position.targets.length > 0
+      order_type = json_obj.dig('order', 'type')
+      target = find_target(order_type, position)
+      raise "target not found" if target.nil?
       target.update_from_order(total_quantity)
     else
-      puts "no applicable target"
+      position.create_targets
     end
   end
 
