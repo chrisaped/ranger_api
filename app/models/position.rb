@@ -97,6 +97,10 @@ class Position < ApplicationRecord
   end
 
   def set_target_price(multiplier)
-    initial_filled_avg_price + (risk_per_share * multiplier)
+    if long?
+      initial_filled_avg_price + (risk_per_share * multiplier)
+    else
+      initial_filled_avg_price - (risk_per_share * multiplier)
+    end
   end
 end

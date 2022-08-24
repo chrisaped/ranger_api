@@ -74,6 +74,25 @@ class PositionTest < ActiveSupport::TestCase
     assert stop_target.price == 29.50
   end
 
+  test "create_targets creates 4 targets with the correct prices if it is a short position" do
+    new_attrs = {
+      side: :short,
+      initial_stop_price: 30.50
+    }
+    position = Position.create!(position_obj(new_attrs))
+    position.create_targets
+
+    first_target = position.targets[0]
+    second_target = position.targets[1]
+    third_target = position.targets[2]
+    stop_target = position.targets[3]
+
+    assert first_target.price == 29.50
+    assert second_target.price == 29.00
+    assert third_target.price == 28.50
+    assert stop_target.price == 30.50
+  end
+
   test "create_targets creates 4 targets with the correct prices when initial_filled_avg_price is different from initial_price" do
     new_attrs = { initial_filled_avg_price: 30.10, risk_per_share: 0.6 }
     position = Position.create!(position_obj(new_attrs))
@@ -89,8 +108,6 @@ class PositionTest < ActiveSupport::TestCase
     assert third_target.price == 31.90
     assert stop_target.price == 29.50
   end
-
-  # need to add tests for short positions
 
   test "create_targets creates 4 targets with the correct quantities with an odd number" do
     new_quantity = 667
