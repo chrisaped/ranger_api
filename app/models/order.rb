@@ -27,8 +27,7 @@ class Order < ApplicationRecord
 
   def create_or_update_position_targets(json_obj, total_quantity, position)
     if position.targets.length > 0
-      order_type = json_obj.dig('order', 'type')
-      target = find_target(order_type, position)
+      target = find_target(position)
       raise "target not found" if target.nil?
       target.update_from_order(total_quantity, filled_avg_price)
     else
@@ -36,25 +35,13 @@ class Order < ApplicationRecord
     end
   end
 
-  def find_target(order_type, position)
+  def find_target(position)
     Target.find_by(
       quantity: quantity,
       price: price,
       position: position, 
       filled: false, 
       side: side, 
-      category: determine_target_category(order_type)
     )
-  end
-
-  def determine_target_category(order_type)
-    case order_type
-    when 'limit'
-      :profit
-    when 'stop'
-      :stop
-    else
-      puts "order_type not supported: #{order_type}"
-    end    
   end
 end

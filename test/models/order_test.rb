@@ -176,7 +176,7 @@ class OrderTest < ActiveSupport::TestCase
       symbol: params.dig('order', 'symbol'),
       raw_order: params,
       quantity: params.dig('qty').to_i,
-      price: params.dig('price').to_d,
+      price: params.dig('order', 'limit_price').to_d,
       filled_avg_price: params.dig('order', 'filled_avg_price').to_d
     }
   end
