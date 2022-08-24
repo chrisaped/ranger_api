@@ -119,6 +119,57 @@ class TargetTest < ActiveSupport::TestCase
     assert stop_target.price == (second_target.price - position.risk_per_share)
   end
 
+  test "update_from_order works for a short position, and does not update the stop target if the last profit target has been filled" do
+    position = positions(:short)
+    assert position.targets.length == 4
+
+    first_target = position.targets.first
+    assert first_target.profit?
+
+    second_target = position.targets[1]
+    assert second_target.profit?
+
+    third_target = position.targets[2]
+    assert third_target.profit?
+
+    stop_target = position.targets[3]
+    assert stop_target.stop?
+    stop_target_id = stop_target.id
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    assert_not first_target.filled_avg_price.nil?
+
+    stop_target = Target.find(stop_target_id)
+    assert stop_target.quantity == total_quantity
+    assert stop_target.price == (first_target.price + position.risk_per_share)
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+    assert_not second_target.filled_avg_price.nil?
+
+    stop_target = Target.find(stop_target_id)
+    assert stop_target.quantity == total_quantity
+    assert stop_target.price == (second_target.price + position.risk_per_share)
+
+    position.closed!
+    assert position.closed?
+
+    total_quantity = 0
+    filled_avg_price = third_target.price
+    third_target.update_from_order(total_quantity, filled_avg_price)
+    assert third_target.filled?
+    assert_not third_target.filled_avg_price.nil?
+
+    stop_target = Target.find(stop_target_id)
+    assert stop_target.quantity == third_target.quantity
+    assert stop_target.price == (second_target.price + position.risk_per_share)
+  end
+
   def sell_order_json_obj(attrs = {})
     file = File.join(Rails.root, 'test', 'data_samples', 'sell_order.json')
     json = File.read(file)

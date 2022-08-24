@@ -30,3 +30,34 @@ stop:
   position: one
   side: 1 #sell
   category: 1 #stop
+
+one_short:
+  quantity: 200
+  price: 29.50
+  multiplier: 1.0
+  position: short
+  side: 0 #buy
+  category: 0 #profit
+
+two_short:
+  quantity: 200
+  price: 29.00
+  multiplier: 2.0
+  position: short
+  side: 0 #buy
+  category: 0 #profit
+
+three_short:
+  quantity: 200
+  price: 28.50
+  multiplier: 3.0
+  position: short
+  side: 0 #buy
+  category: 0 #profit
+
+stop_short:
+  quantity: 600
+  price: 30.50
+  position: short
+  side: 0 #buy
+  category: 1 #stop

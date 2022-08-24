@@ -21,3 +21,14 @@ two:
   risk_per_share: 0.25
   initial_filled_avg_price: 300.0
   initial_stop_price: 299.75
+
+short:
+  status: 0
+  initial_quantity: 600
+  symbol: AAPL
+  side: 1
+  current_quantity: 600
+  initial_price: 30.0
+  risk_per_share: 0.50
+  initial_filled_avg_price: 30.0
+  initial_stop_price: 30.50

@@ -34,7 +34,11 @@ class Target < ApplicationRecord
   end
 
   def calculate_new_stop_price
-    price - position.risk_per_share
+    if position.long?
+      price - position.risk_per_share
+    else
+      price + position.risk_per_share
+    end
   end
 
   def add_side
