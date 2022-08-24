@@ -68,6 +68,26 @@ class Position < ApplicationRecord
     )
   end
 
+  def calculate_profit_or_loss
+    gross_earnings = 0.0
+    filled_targets = targets.select { |target| target.filled? }
+
+    if filled_targets.length > 0
+      filled_targets.each do |filled_target|
+        gross_amount = filled_target.filled_avg_price * filled_target.quantity
+        
+        if filled_target.profit?
+          gross_earnings += gross_amount
+        else
+          # stop
+          gross_earnings -= gross_amount
+        end
+      end      
+    end
+
+    gross_earnings
+  end
+
   private
 
   def convert_to_hash_with_floats(obj)

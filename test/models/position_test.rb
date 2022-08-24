@@ -212,6 +212,79 @@ class PositionTest < ActiveSupport::TestCase
     assert position.risk_per_share == actual_risk_per_share
   end
 
+  test "calculate_profit_or_loss works with all profit targets filled" do
+    position = Position.create!(position_obj)
+    position.create_targets
+
+    first_target = position.targets[0]
+    assert first_target.profit?
+
+    second_target = position.targets[1]
+    assert second_target.profit?
+
+    third_target = position.targets[2]
+    assert third_target.profit?
+
+    stop_target = position.targets[3]
+    assert stop_target.stop?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    first_target_gross_earnings = first_target.filled_avg_price * first_target.quantity
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+    second_target_gross_earnings = second_target.filled_avg_price * second_target.quantity
+
+    total_quantity = 0
+    filled_avg_price = third_target.price
+    third_target.update_from_order(total_quantity, filled_avg_price)
+    assert third_target.filled?
+    third_target_gross_earnings = third_target.filled_avg_price * third_target.quantity
+
+    targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + third_target_gross_earnings
+    assert position.calculate_profit_or_loss == targets_gross_earnings
+  end
+
+  test "calculate_profit_or_loss works with two profit targets and stop filled" do
+    position = Position.create!(position_obj)
+    position.create_targets
+
+    first_target = position.targets[0]
+    assert first_target.profit?
+
+    second_target = position.targets[1]
+    assert second_target.profit?
+
+    stop_target = position.targets[3]
+    assert stop_target.stop?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    first_target_gross_earnings = first_target.filled_avg_price * first_target.quantity
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+    second_target_gross_earnings = second_target.filled_avg_price * second_target.quantity
+
+    total_quantity = 0
+    filled_avg_price = stop_target.price
+    stop_target.update_from_order(total_quantity, filled_avg_price)
+    assert stop_target.filled?
+    stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
+
+    targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
+    assert position.calculate_profit_or_loss == targets_gross_earnings
+  end
+
   def get_just_position_state(position_state)
     position_state.select { |key, value| !['profit_targets', 'stop_target'].include?(key) }
   end
