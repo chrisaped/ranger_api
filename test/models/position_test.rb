@@ -180,6 +180,7 @@ class PositionTest < ActiveSupport::TestCase
     assert position_state.has_key?('risk_per_share')
     assert position_state.has_key?('profit_targets')
     assert position_state.has_key?('stop_target')
+    assert position_state.has_key?('profit_or_loss')
     
     just_position_state = get_just_position_state(position_state)
     assert just_position_state == position.attributes
@@ -286,7 +287,7 @@ class PositionTest < ActiveSupport::TestCase
   end
 
   def get_just_position_state(position_state)
-    position_state.select { |key, value| !['profit_targets', 'stop_target'].include?(key) }
+    position_state.select { |key, value| !['profit_targets', 'stop_target', 'profit_or_loss'].include?(key) }
   end
 
   def position_obj(attrs = {})

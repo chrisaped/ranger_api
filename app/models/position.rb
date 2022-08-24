@@ -41,6 +41,8 @@ class Position < ApplicationRecord
     converted_stop_target = convert_to_hash_with_floats(stop_target)
     position_state_obj['stop_target'] = converted_stop_target
 
+    position_state_obj['profit_or_loss'] = calculate_profit_or_loss
+
     position_state_obj
   end
 
