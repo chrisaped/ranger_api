@@ -213,8 +213,9 @@ class PositionTest < ActiveSupport::TestCase
     assert position.risk_per_share == actual_risk_per_share
   end
 
-  test "calculate_profit_or_loss works with all profit targets filled" do
+  test "calculate_profit_or_loss works with all profit targets filled for a long position" do
     position = Position.create!(position_obj)
+    assert position.long?
     position.create_targets
 
     first_target = position.targets[0]
@@ -248,11 +249,14 @@ class PositionTest < ActiveSupport::TestCase
     third_target_gross_earnings = third_target.filled_avg_price * third_target.quantity
 
     targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + third_target_gross_earnings
-    assert position.calculate_profit_or_loss == targets_gross_earnings
+    initial_cost = position.initial_quantity * position.initial_filled_avg_price
+    profit_or_loss = targets_gross_earnings - initial_cost
+    assert position.calculate_profit_or_loss == profit_or_loss
   end
 
-  test "calculate_profit_or_loss works with two profit targets and stop filled" do
+  test "calculate_profit_or_loss works with two profit targets and stop filled for a long position" do
     position = Position.create!(position_obj)
+    assert position.long?
     position.create_targets
 
     first_target = position.targets[0]
@@ -283,7 +287,96 @@ class PositionTest < ActiveSupport::TestCase
     stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
 
     targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
-    assert position.calculate_profit_or_loss == targets_gross_earnings
+    initial_cost = position.initial_quantity * position.initial_filled_avg_price
+    profit_or_loss = targets_gross_earnings - initial_cost
+    assert position.calculate_profit_or_loss == profit_or_loss
+  end
+
+  test "calculate_profit_or_loss works with all profit targets filled for a short position" do
+    new_attrs = {
+      side: :short,
+      initial_stop_price: 30.50
+    }
+    position = Position.create!(position_obj(new_attrs))
+    assert position.short?
+    position.create_targets
+
+    first_target = position.targets[0]
+    assert first_target.profit?
+
+    second_target = position.targets[1]
+    assert second_target.profit?
+
+    third_target = position.targets[2]
+    assert third_target.profit?
+
+    stop_target = position.targets[3]
+    assert stop_target.stop?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    first_target_gross_earnings = first_target.filled_avg_price * first_target.quantity
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+    second_target_gross_earnings = second_target.filled_avg_price * second_target.quantity
+
+    total_quantity = 0
+    filled_avg_price = third_target.price
+    third_target.update_from_order(total_quantity, filled_avg_price)
+    assert third_target.filled?
+    third_target_gross_earnings = third_target.filled_avg_price * third_target.quantity
+
+    targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + third_target_gross_earnings
+    initial_cost = position.initial_quantity * position.initial_filled_avg_price
+    profit_or_loss = initial_cost - targets_gross_earnings
+    assert position.calculate_profit_or_loss == profit_or_loss
+  end
+
+  test "calculate_profit_or_loss works with two profit targets and stop filled for a short position" do
+    new_attrs = {
+      side: :short,
+      initial_stop_price: 30.50
+    }
+    position = Position.create!(position_obj(new_attrs))
+    assert position.short?
+    position.create_targets
+
+    first_target = position.targets[0]
+    assert first_target.profit?
+
+    second_target = position.targets[1]
+    assert second_target.profit?
+
+    stop_target = position.targets[3]
+    assert stop_target.stop?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    first_target_gross_earnings = first_target.filled_avg_price * first_target.quantity
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+    second_target_gross_earnings = second_target.filled_avg_price * second_target.quantity
+
+    total_quantity = 0
+    filled_avg_price = stop_target.price
+    stop_target.update_from_order(total_quantity, filled_avg_price)
+    assert stop_target.filled?
+    stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
+
+    targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
+    initial_cost = position.initial_quantity * position.initial_filled_avg_price
+    profit_or_loss = initial_cost - targets_gross_earnings
+    assert position.calculate_profit_or_loss == profit_or_loss
   end
 
   def get_just_position_state(position_state)

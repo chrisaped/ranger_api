@@ -87,7 +87,16 @@ class Position < ApplicationRecord
       end      
     end
 
-    gross_earnings
+    initial_cost = initial_quantity * initial_filled_avg_price
+
+    profit_or_loss = if long?
+      gross_earnings - initial_cost
+    else
+      # short
+      initial_cost - gross_earnings
+    end
+
+    profit_or_loss
   end
 
   private
