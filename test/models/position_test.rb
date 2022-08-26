@@ -180,7 +180,7 @@ class PositionTest < ActiveSupport::TestCase
     assert position_state.has_key?('risk_per_share')
     assert position_state.has_key?('profit_targets')
     assert position_state.has_key?('stop_target')
-    assert position_state.has_key?('profit_or_loss')
+    assert position_state.has_key?('gross_earnings')
     
     just_position_state = get_just_position_state(position_state)
     assert just_position_state == position.attributes
@@ -213,7 +213,7 @@ class PositionTest < ActiveSupport::TestCase
     assert position.risk_per_share == actual_risk_per_share
   end
 
-  test "calculate_profit_or_loss works with all profit targets filled for a long position" do
+  test "calculate_profit_or_loss and calculate_gross_earnings work with all profit targets filled for a long position" do
     position = Position.create!(position_obj)
     assert position.long?
     position.create_targets
@@ -249,12 +249,13 @@ class PositionTest < ActiveSupport::TestCase
     third_target_gross_earnings = third_target.filled_avg_price * third_target.quantity
 
     targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + third_target_gross_earnings
+    assert position.calculate_gross_earnings == targets_gross_earnings
     initial_cost = position.initial_quantity * position.initial_filled_avg_price
     profit_or_loss = targets_gross_earnings - initial_cost
     assert position.calculate_profit_or_loss == profit_or_loss
   end
 
-  test "calculate_profit_or_loss works with two profit targets and stop filled for a long position" do
+  test "calculate_profit_or_loss and calculate_gross_earnings work with two profit targets and stop filled for a long position" do
     position = Position.create!(position_obj)
     assert position.long?
     position.create_targets
@@ -287,12 +288,13 @@ class PositionTest < ActiveSupport::TestCase
     stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
 
     targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
+    assert position.calculate_gross_earnings == targets_gross_earnings
     initial_cost = position.initial_quantity * position.initial_filled_avg_price
     profit_or_loss = targets_gross_earnings - initial_cost
     assert position.calculate_profit_or_loss == profit_or_loss
   end
 
-  test "calculate_profit_or_loss works with all profit targets filled for a short position" do
+  test "calculate_profit_or_loss and calculate_gross_earnings work with all profit targets filled for a short position" do
     new_attrs = {
       side: :short,
       initial_stop_price: 30.50
@@ -332,12 +334,13 @@ class PositionTest < ActiveSupport::TestCase
     third_target_gross_earnings = third_target.filled_avg_price * third_target.quantity
 
     targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + third_target_gross_earnings
+    assert position.calculate_gross_earnings == targets_gross_earnings
     initial_cost = position.initial_quantity * position.initial_filled_avg_price
     profit_or_loss = initial_cost - targets_gross_earnings
     assert position.calculate_profit_or_loss == profit_or_loss
   end
 
-  test "calculate_profit_or_loss works with two profit targets and stop filled for a short position" do
+  test "calculate_profit_or_loss and calculate_gross_earnings work with two profit targets and stop filled for a short position" do
     new_attrs = {
       side: :short,
       initial_stop_price: 30.50
@@ -374,13 +377,14 @@ class PositionTest < ActiveSupport::TestCase
     stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
 
     targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
+    assert position.calculate_gross_earnings == targets_gross_earnings
     initial_cost = position.initial_quantity * position.initial_filled_avg_price
     profit_or_loss = initial_cost - targets_gross_earnings
     assert position.calculate_profit_or_loss == profit_or_loss
   end
 
   def get_just_position_state(position_state)
-    position_state.select { |key, value| !['profit_targets', 'stop_target', 'profit_or_loss'].include?(key) }
+    position_state.select { |key, value| !['profit_targets', 'stop_target', 'gross_earnings'].include?(key) }
   end
 
   def position_obj(attrs = {})

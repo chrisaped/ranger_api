@@ -41,7 +41,7 @@ class Position < ApplicationRecord
     converted_stop_target = convert_to_hash_with_floats(stop_target)
     position_state_obj['stop_target'] = converted_stop_target
 
-    position_state_obj['profit_or_loss'] = calculate_profit_or_loss
+    position_state_obj['gross_earnings'] = calculate_gross_earnings
 
     position_state_obj
   end
@@ -70,7 +70,7 @@ class Position < ApplicationRecord
     )
   end
 
-  def calculate_profit_or_loss
+  def calculate_gross_earnings
     gross_earnings = 0.0
     filled_targets = targets.select { |target| target.filled? }
 
@@ -84,9 +84,14 @@ class Position < ApplicationRecord
           # stop
           gross_earnings -= gross_amount
         end
-      end      
+      end
     end
 
+    gross_earnings
+  end
+
+  def calculate_profit_or_loss
+    gross_earnings = calculate_gross_earnings
     initial_cost = initial_quantity * initial_filled_avg_price
 
     profit_or_loss = if long?
