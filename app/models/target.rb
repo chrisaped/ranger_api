@@ -20,10 +20,7 @@ class Target < ApplicationRecord
   private
 
   def find_position_stop
-    Target.find_by(
-      position: position,
-      category: :stop
-    )
+    position.targets.select { |target| target.stop? }.first
   end
 
   def update_stop(stop, total_quantity)
