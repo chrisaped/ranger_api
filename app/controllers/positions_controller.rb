@@ -9,6 +9,11 @@ class PositionsController < ApplicationController
     render json: positions
   end
 
+  def get_total_profit_or_loss_today
+    total_profit_or_loss_today = Position.total_profit_or_loss_today
+    render json: total_profit_or_loss_today
+  end
+
   private
 
   def create_position(params)

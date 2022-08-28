@@ -15,6 +15,12 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal Position.generate_states.to_json, @response.body
   end
 
+  test "get_total_profit_or_loss_today works" do
+    get get_total_profit_or_loss_today_path
+    
+    assert_equal Position.total_profit_or_loss_today.to_s, @response.body
+  end
+
   def position_params
     {"side"=>"buy", "symbol"=>"AMC", "type"=>"limit", "limit_price"=>"20.01", "qty"=>"1374", "time_in_force"=>"gtc", "stop_price"=>"19.76", "position"=>{"symbol"=>"AMC", "side"=>"buy"}}
   end
