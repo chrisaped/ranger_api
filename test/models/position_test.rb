@@ -287,7 +287,7 @@ class PositionTest < ActiveSupport::TestCase
     assert stop_target.filled?
     stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
 
-    targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
+    targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + stop_target_gross_earnings
     assert position.calculate_gross_earnings == targets_gross_earnings
     initial_cost = position.initial_quantity * position.initial_filled_avg_price
     profit_or_loss = targets_gross_earnings - initial_cost
@@ -376,11 +376,121 @@ class PositionTest < ActiveSupport::TestCase
     assert stop_target.filled?
     stop_target_gross_earnings = stop_target.filled_avg_price * stop_target.quantity
 
-    targets_gross_earnings = (first_target_gross_earnings + second_target_gross_earnings) - stop_target_gross_earnings
+    targets_gross_earnings = first_target_gross_earnings + second_target_gross_earnings + stop_target_gross_earnings
     assert position.calculate_gross_earnings == targets_gross_earnings
     initial_cost = position.initial_quantity * position.initial_filled_avg_price
     profit_or_loss = initial_cost - targets_gross_earnings
     assert position.calculate_profit_or_loss == profit_or_loss
+  end
+
+  test "total_profit_or_loss_today works" do
+    position_one_today = Position.create!(position_obj)
+    position_one_today.create_targets
+
+    first_target = position_one_today.targets[0]
+    assert first_target.profit?
+
+    second_target = position_one_today.targets[1]
+    assert second_target.profit?
+
+    stop_target = position_one_today.targets[3]
+    assert stop_target.stop?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    first_target_gross = first_target.quantity * first_target.filled_avg_price
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+    second_target_gross = second_target.quantity * second_target.filled_avg_price
+
+    total_quantity = 0
+    filled_avg_price = stop_target.price
+    stop_target.update_from_order(total_quantity, filled_avg_price)
+    assert stop_target.filled?
+    stop_target_gross = stop_target.quantity * stop_target.filled_avg_price
+
+    position_one_today.update_quantity_from_order(total_quantity)
+    position_one_today.save!
+    assert position_one_today.closed?
+    position_one_today_profit_or_loss = position_one_today.calculate_profit_or_loss
+
+    new_attrs = {
+      symbol: 'FTCH'
+    }
+    position_two_today = Position.create!(position_obj(new_attrs))
+    position_two_today.create_targets
+
+    first_target = position_two_today.targets[0]
+    assert first_target.profit?
+
+    second_target = position_two_today.targets[1]
+    assert second_target.profit?
+
+    third_target = position_two_today.targets[2]
+    assert third_target.profit?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+
+    total_quantity = 0
+    filled_avg_price = third_target.price
+    third_target.update_from_order(total_quantity, filled_avg_price)
+    assert third_target.filled?
+
+    position_two_today.update_quantity_from_order(total_quantity)
+    position_two_today.save!
+    assert position_two_today.closed?
+    position_two_today_profit_or_loss = position_two_today.calculate_profit_or_loss
+
+    new_attrs = {
+      symbol: 'AMZN'
+    }
+    position_one_yesterday = Position.create!(position_obj(new_attrs))
+    position_one_yesterday.update_columns(created_at: Date.yesterday)
+    position_one_yesterday.create_targets
+
+    first_target = position_one_yesterday.targets[0]
+    assert first_target.profit?
+
+    second_target = position_one_yesterday.targets[1]
+    assert second_target.profit?
+
+    stop_target = position_one_yesterday.targets[3]
+    assert stop_target.stop?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+
+    total_quantity = 200
+    filled_avg_price = second_target.price
+    second_target.update_from_order(total_quantity, filled_avg_price)
+    assert second_target.filled?
+
+    total_quantity = 0
+    filled_avg_price = stop_target.price
+    stop_target.update_from_order(total_quantity, filled_avg_price)
+    assert stop_target.filled?
+
+    position_one_yesterday.update_quantity_from_order(total_quantity)
+    position_one_yesterday.save!
+    assert position_one_yesterday.closed?
+
+    total_profit_or_loss_today = Position.total_profit_or_loss_today
+    assert total_profit_or_loss_today == (position_one_today_profit_or_loss + position_two_today_profit_or_loss)
   end
 
   def get_just_position_state(position_state)

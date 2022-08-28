@@ -77,13 +77,7 @@ class Position < ApplicationRecord
     if filled_targets.length > 0
       filled_targets.each do |filled_target|
         gross_amount = filled_target.filled_avg_price * filled_target.quantity
-        
-        if filled_target.profit?
-          gross_earnings += gross_amount
-        else
-          # stop
-          gross_earnings -= gross_amount
-        end
+        gross_earnings += gross_amount
       end
     end
 
@@ -102,6 +96,18 @@ class Position < ApplicationRecord
     end
 
     profit_or_loss
+  end
+
+  def self.total_profit_or_loss_today
+    positions = Position.closed.where(created_at: Date.today.all_day)
+
+    total_profit_or_loss = 0.0
+
+    positions.each do |position|
+      total_profit_or_loss += position.calculate_profit_or_loss
+    end
+
+    total_profit_or_loss
   end
 
   private
