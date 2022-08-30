@@ -28,8 +28,15 @@ class Order < ApplicationRecord
   def create_or_update_position_targets(json_obj, total_quantity, position)
     if position.targets.length > 0
       target = find_target(position)
-      raise "target not found" if target.nil?
-      target.update_from_order(total_quantity, filled_avg_price)
+      if target
+        target.update_from_order(total_quantity, filled_avg_price) 
+      else
+        puts "target not found"
+        puts "quantity: #{quantity}"
+        puts "price: #{price}"
+        puts "position: #{position}"
+        puts "side: #{side}"
+      end
     else
       position.create_targets
     end

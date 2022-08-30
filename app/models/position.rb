@@ -75,6 +75,11 @@ class Position < ApplicationRecord
       end
     end
 
+    if current_quantity != 0
+      current_unfilled_gross_amount = current_quantity * initial_filled_avg_price
+      gross_earnings += current_unfilled_gross_amount
+    end
+
     gross_earnings
   end
 
