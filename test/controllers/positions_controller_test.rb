@@ -11,14 +11,24 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
 
   test "get_positions works" do
     get get_positions_path
+    
+    positions = Position.open.order(:created_at).map(&:create_state)
 
-    assert_equal Position.generate_states.to_json, @response.body
+    assert_equal positions.to_json, @response.body
   end
 
   test "get_total_profit_or_loss_today works" do
     get get_total_profit_or_loss_today_path
     
     assert_equal Position.total_profit_or_loss_today.to_s, @response.body
+  end
+
+  test "get_all_closed_positions works" do
+    get get_all_closed_positions_path
+    
+    positions = Position.closed.order(created_at: :desc).map(&:create_state)
+
+    assert_equal positions.to_json, @response.body
   end
 
   def position_params

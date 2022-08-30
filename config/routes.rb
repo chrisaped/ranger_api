@@ -7,4 +7,5 @@ Rails.application.routes.draw do
   post '/create_order', to: 'orders#create'
   get '/get_positions', to: 'positions#get_positions'
   get '/get_total_profit_or_loss_today', to: 'positions#get_total_profit_or_loss_today'
+  get '/get_all_closed_positions', to: 'positions#get_all_closed_positions'
 end

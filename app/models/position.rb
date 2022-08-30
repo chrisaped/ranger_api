@@ -18,28 +18,22 @@ class Position < ApplicationRecord
     end    
   end
 
-  def self.generate_states
-    positions_array = []
-
-    Position.open.order(:created_at).each do |position|
-      positions_array << position.create_state if position.targets.length > 0
-    end
-
-    positions_array
-  end
-
   def create_state
     position_state_obj = convert_to_hash_with_floats(self)
     
     profit_targets = targets.select { |target| target.profit? }.sort_by(&:created_at)
-    converted_profit_targets = profit_targets.map do |profit_target|
-      convert_to_hash_with_floats(profit_target)
+    if profit_targets.length > 0
+      converted_profit_targets = profit_targets.map do |profit_target|
+        convert_to_hash_with_floats(profit_target)
+      end
+      position_state_obj['profit_targets'] = converted_profit_targets
     end
-    position_state_obj['profit_targets'] = converted_profit_targets
     
-    stop_target = targets.select { |target| target.stop? }.first
-    converted_stop_target = convert_to_hash_with_floats(stop_target)
-    position_state_obj['stop_target'] = converted_stop_target
+    stop_target = targets.select { |target| target.stop? }&.first
+    if stop_target
+      converted_stop_target = convert_to_hash_with_floats(stop_target)
+      position_state_obj['stop_target'] = converted_stop_target
+    end
 
     position_state_obj['gross_earnings'] = calculate_gross_earnings
 

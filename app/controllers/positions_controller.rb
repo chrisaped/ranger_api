@@ -5,13 +5,18 @@ class PositionsController < ApplicationController
   end
 
   def get_positions
-    positions = Position.generate_states
+    positions = Position.open.order(:created_at).map(&:create_state)
     render json: positions
   end
 
   def get_total_profit_or_loss_today
     total_profit_or_loss_today = Position.total_profit_or_loss_today
     render json: total_profit_or_loss_today
+  end
+
+  def get_all_closed_positions
+    positions = Position.closed.order(created_at: :desc).map(&:create_state)
+    render json: positions
   end
 
   private
