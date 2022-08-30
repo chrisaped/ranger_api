@@ -7,7 +7,7 @@ class Order < ApplicationRecord
     position = Position.find_by(status: :open, symbol: symbol)
     raise "position not found" if position.nil?
 
-    total_quantity = json_obj.dig('position_qty').to_i
+    total_quantity = (json_obj.dig('position_qty').to_i).abs
     position.update_quantity_from_order(total_quantity)
 
     if position.initial_filled_avg_price.nil?
