@@ -9,6 +9,17 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 201, @response.status
   end
 
+  test "cancel_position works" do
+    position = positions(:one)
+    assert position.open?
+
+    put cancel_position_path, params: cancel_position_params do
+      assert position.canceled?
+    end
+
+    assert_equal 200, @response.status
+  end
+
   test "get_positions works" do
     get get_positions_path
     
@@ -33,5 +44,9 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
 
   def position_params
     {"side"=>"buy", "symbol"=>"AMC", "type"=>"limit", "limit_price"=>"20.01", "qty"=>"1374", "time_in_force"=>"gtc", "stop_price"=>"19.76", "position"=>{"symbol"=>"AMC", "side"=>"buy"}}
+  end
+
+  def cancel_position_params
+    {"symbol"=>"GME", "position"=>{"symbol"=>"GME"}}
   end
 end

@@ -1,7 +1,22 @@
 class PositionsController < ApplicationController
   def create
-    position = create_position(params)
+    create_position(params)
     render status: 201
+  end
+
+  def cancel
+    symbol = params.dig(:symbol)
+    position = Position.find_by(symbol: symbol, status: :open)
+    status = 200
+
+    if position
+      position.canceled!
+    else
+      puts "no open position found for #{symbol}"
+      status = 400
+    end
+
+    render status: status
   end
 
   def get_positions
