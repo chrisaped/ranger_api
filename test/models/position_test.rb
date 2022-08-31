@@ -180,7 +180,6 @@ class PositionTest < ActiveSupport::TestCase
     assert position_state.has_key?('risk_per_share')
     assert position_state.has_key?('profit_targets')
     assert position_state.has_key?('stop_target')
-    assert position_state.has_key?('gross_earnings')
     
     just_position_state = get_just_position_state(position_state)
     assert just_position_state == position.attributes

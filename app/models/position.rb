@@ -35,8 +35,6 @@ class Position < ApplicationRecord
       position_state_obj['stop_target'] = converted_stop_target
     end
 
-    position_state_obj['gross_earnings'] = calculate_gross_earnings
-
     position_state_obj
   end
 
@@ -73,11 +71,6 @@ class Position < ApplicationRecord
         gross_amount = filled_target.filled_avg_price * filled_target.quantity
         gross_earnings += gross_amount
       end
-    end
-
-    if current_quantity != 0
-      current_unfilled_gross_amount = current_quantity * initial_filled_avg_price
-      gross_earnings += current_unfilled_gross_amount
     end
 
     gross_earnings
