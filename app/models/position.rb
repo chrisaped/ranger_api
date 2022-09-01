@@ -73,6 +73,11 @@ class Position < ApplicationRecord
       end
     end
 
+    unless no_target_sell_filled_avg_price.nil? && no_target_sell_filled_qty.nil?
+      gross_amount = no_target_sell_filled_avg_price * no_target_sell_filled_qty
+      gross_earnings += gross_amount
+    end
+
     gross_earnings
   end
 

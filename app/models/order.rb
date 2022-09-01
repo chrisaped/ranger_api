@@ -28,13 +28,18 @@ class Order < ApplicationRecord
   def create_or_update_position_targets(json_obj, total_quantity, position)
     if position.targets.length > 0
       target = find_target(position)
+
       if target
-        target.update_from_order(total_quantity, filled_avg_price) 
+        target.update_from_order(total_quantity, filled_avg_price)
+      elsif position.closed?
+        position.update_columns(
+          no_target_sell_filled_avg_price: filled_avg_price,
+          no_target_sell_filled_qty: quantity
+        )
       else
         puts "target not found"
         puts "quantity: #{quantity}"
         puts "price: #{price}"
-        puts "position: #{position}"
         puts "side: #{side}"
       end
     else

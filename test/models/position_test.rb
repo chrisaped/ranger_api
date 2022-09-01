@@ -382,6 +382,31 @@ class PositionTest < ActiveSupport::TestCase
     assert position.calculate_profit_or_loss == profit_or_loss
   end
 
+  test "calculate_profit_or_loss and calculate_gross_earnings work with one profit target filled and no_target_sell columns filled" do
+    position = Position.create!(position_obj)
+    assert position.long?
+    position.create_targets
+
+    first_target = position.targets[0]
+    assert first_target.profit?
+
+    total_quantity = 400
+    filled_avg_price = first_target.price
+    first_target.update_from_order(total_quantity, filled_avg_price)
+    assert first_target.filled?
+    first_target_gross_earnings = first_target.filled_avg_price * first_target.quantity
+
+    position.no_target_sell_filled_qty = total_quantity
+    position.no_target_sell_filled_avg_price = first_target.price - 0.05
+    no_target_gross_earnings = position.no_target_sell_filled_qty * position.no_target_sell_filled_avg_price
+
+    total_gross_earnings = first_target_gross_earnings + no_target_gross_earnings
+    assert position.calculate_gross_earnings == total_gross_earnings
+    initial_cost = position.initial_quantity * position.initial_filled_avg_price
+    profit_or_loss = total_gross_earnings - initial_cost
+    assert position.calculate_profit_or_loss == profit_or_loss
+  end
+
   test "total_profit_or_loss_today works" do
     position_one_today = Position.create!(position_obj)
     position_one_today.create_targets

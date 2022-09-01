@@ -130,6 +130,54 @@ class OrderTest < ActiveSupport::TestCase
     assert stop_target.filled?
   end
 
+  test 'update_position sets no_target_sell columns' do
+    new_attrs = { 
+      symbol: 'CHS',
+      initial_filled_avg_price: 30.0,
+      risk_per_share: 0.50
+    }
+    position = Position.create!(position_obj(new_attrs))
+    
+    position.create_targets
+    assert position.targets.length > 0
+
+    assert position.no_target_sell_filled_avg_price.nil?
+    assert position.no_target_sell_filled_qty.nil?
+
+    sell_order_attributes = { 
+      "order" => { 
+        "filled_qty" => "600", 
+        "qty" => "600", 
+        "symbol" => "CHS" 
+      },
+      "position_qty" => "0",
+      "qty" => "600"
+    }
+    sell_order = order_json('sell_order', sell_order_attributes)
+
+    quantity = sell_order.dig('qty').to_i
+    price = sell_order.dig('price').to_d 
+    side = sell_order.dig('order', 'side')
+    
+    order_attrs = {
+      side: side,
+      symbol: sell_order.dig('order', 'symbol'),
+      raw_order: sell_order,
+      quantity: quantity,
+      price: price
+    }
+    order = Order.new(order_attrs)
+    
+    assert_difference -> { Position.count } => 0 do
+      order.update_position(sell_order)
+    end
+
+    position = order.position
+    assert position.closed?
+    assert position.no_target_sell_filled_avg_price == order.filled_avg_price
+    assert position.no_target_sell_filled_qty == order.quantity
+  end
+
   def find_target(quantity, price, position, filled, side, category)
     Target.find_by(
       quantity: quantity,

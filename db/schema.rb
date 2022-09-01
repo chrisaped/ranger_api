@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_08_21_090412) do
+ActiveRecord::Schema[7.0].define(version: 2022_08_31_131257) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -39,6 +39,9 @@ ActiveRecord::Schema[7.0].define(version: 2022_08_21_090412) do
     t.decimal "risk_per_share", precision: 6, scale: 2
     t.decimal "initial_filled_avg_price", precision: 6, scale: 2
     t.decimal "initial_stop_price", precision: 6, scale: 2
+    t.decimal "realized_profit_loss", precision: 8, scale: 2
+    t.decimal "no_target_sell_filled_avg_price", precision: 6, scale: 2
+    t.integer "no_target_sell_filled_qty"
   end
 
   create_table "targets", force: :cascade do |t|
