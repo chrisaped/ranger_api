@@ -18,7 +18,7 @@ class OrdersController < ApplicationController
       side: params.dig('order', 'side'),
       symbol: params.dig('order', 'symbol'),
       raw_order: params,
-      quantity: params.dig('qty').to_i,
+      quantity: params.dig('order', 'filled_qty').to_i,
       price: params.dig('order', 'limit_price').to_d,
       filled_avg_price: params.dig('order', 'filled_avg_price').to_d
     }
