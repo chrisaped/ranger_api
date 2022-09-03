@@ -31,7 +31,10 @@ class Order < ApplicationRecord
 
       if target
         target.update_from_order(total_quantity, filled_avg_price)
-      elsif position.closed?
+      elsif json_obj.dig('order', 'order_type') == 'market'
+        stop = find_position_stop(position)
+        stop.update_from_order(total_quantity, filled_avg_price)
+      elsif !target && position.closed?
         position.update_columns(
           no_target_sell_filled_avg_price: filled_avg_price,
           no_target_sell_filled_qty: quantity
@@ -45,6 +48,10 @@ class Order < ApplicationRecord
     else
       position.create_targets
     end
+  end
+
+  def find_position_stop(position)
+    position.targets.select { |target| target.stop? }.first
   end
 
   def find_target(position)

@@ -94,17 +94,19 @@ class OrderTest < ActiveSupport::TestCase
 
   test 'update_position sets stop target as filled' do
     position = positions(:one)
+    assert position.open?
 
-    stop_order = order_json('stop_order')
+    stop_order = order_json('market_sell_stop_order')
 
-    quantity = stop_order.dig('qty').to_i
-    price = stop_order.dig('price').to_d 
+    quantity = stop_order.dig('order', 'filled_qty').to_i
+    price = stop_order.dig('order', 'limit_price').to_d 
     side = stop_order.dig('order', 'side')
 
     stop_target = Target.find_by(position: position, filled: false, category: 'stop')
     assert_not stop_target.filled?
     assert stop_target.quantity == position.current_quantity
     assert stop_target.price == (position.initial_price - position.risk_per_share)
+    assert stop_target.filled_avg_price.nil?
     
     order_attrs = {
       side: side,
@@ -122,12 +124,16 @@ class OrderTest < ActiveSupport::TestCase
     position = order.position
     total_quantity = stop_order.dig('position_qty').to_i
     assert position.current_quantity == total_quantity
+    assert position.closed?
+    assert position.no_target_sell_filled_avg_price.nil?
+    assert position.no_target_sell_filled_qty.nil?
     
     all_profit_targets = Target.where(position: position, filled: false, category: 'profit')
     assert all_profit_targets.count == 3
 
     stop_target = Target.find_by(position: position, filled: true, category: 'stop')
     assert stop_target.filled?
+    assert stop_target.filled_avg_price == order.filled_avg_price
   end
 
   test 'update_position sets no_target_sell columns' do
