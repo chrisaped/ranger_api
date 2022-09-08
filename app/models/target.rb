@@ -9,11 +9,15 @@ class Target < ApplicationRecord
   before_create :add_side
 
   def update_from_order(total_quantity, filled_avg_price)
-    self.update_columns(filled: true, filled_avg_price: filled_avg_price)
+    self.update_columns(
+      filled: true, 
+      filled_avg_price: filled_avg_price,
+      updated_at: Time.now
+    )
 
-    if profit?
+    if profit? && position.open?
       stop = find_position_stop
-      update_stop(stop, total_quantity) if stop && position.open?
+      update_stop(stop, total_quantity) if stop
     end
   end
 
@@ -26,7 +30,8 @@ class Target < ApplicationRecord
   def update_stop(stop, total_quantity)
     stop.update_columns(
       quantity: total_quantity,
-      price: calculate_new_stop_price 
+      price: calculate_new_stop_price,
+      updated_at: Time.now
     )
   end
 
