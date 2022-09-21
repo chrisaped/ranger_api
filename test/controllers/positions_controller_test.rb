@@ -11,7 +11,8 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
 
   test "cancel_position works" do
     position = positions(:one)
-    assert position.open?
+    position.pending!
+    assert position.pending?
 
     put cancel_position_path, params: cancel_position_params do
       assert position.canceled?
@@ -20,27 +21,36 @@ class PositionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 200, @response.status
   end
 
-  test "get_positions works" do
-    get get_positions_path
+  test "open_positions works" do
+    get open_positions_path
     
     positions = Position.open.order(:created_at).map(&:create_state)
 
     assert_equal positions.to_json, @response.body
   end
 
-  test "get_total_profit_or_loss_today works" do
-    get get_total_profit_or_loss_today_path
+  test "pending_positions works" do
+    get pending_positions_path
     
-    assert_equal Position.total_profit_or_loss_today.to_s, @response.body
+    positions = Position.pending.order(:created_at).map(&:create_state)
+
+    assert_equal positions.to_json, @response.body
   end
 
-  test "get_all_closed_positions works" do
-    get get_all_closed_positions_path
+  test "closed_positions works" do
+    get closed_positions_path
     
     positions = Position.closed.order(created_at: :desc).map(&:create_state)
 
     assert_equal positions.to_json, @response.body
   end
+
+  test "total_profit_or_loss_today works" do
+    get total_profit_or_loss_today_path
+    
+    assert_equal Position.total_profit_or_loss_today.to_s, @response.body
+  end
+
 
   def position_params
     {"side"=>"buy", "symbol"=>"AMC", "type"=>"limit", "limit_price"=>"20.01", "qty"=>"1374", "time_in_force"=>"gtc", "stop_price"=>"19.76", "position"=>{"symbol"=>"AMC", "side"=>"buy"}}

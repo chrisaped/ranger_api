@@ -6,7 +6,7 @@ class PositionsController < ApplicationController
 
   def cancel
     symbol = params.dig(:symbol)
-    position = Position.find_by(symbol: symbol, status: :open)
+    position = Position.find_by(symbol: symbol, status: :pending)
     status = 200
 
     if position
@@ -19,19 +19,24 @@ class PositionsController < ApplicationController
     render status: status
   end
 
-  def get_positions
+  def open_positions
     positions = Position.open.order(:created_at).map(&:create_state)
     render json: positions
   end
-
-  def get_total_profit_or_loss_today
-    total_profit_or_loss_today = Position.total_profit_or_loss_today
-    render json: total_profit_or_loss_today
+  
+  def pending_positions
+    positions = Position.pending.order(:created_at).map(&:create_state)
+    render json: positions
   end
 
-  def get_all_closed_positions
+  def closed_positions
     positions = Position.closed.order(created_at: :desc).map(&:create_state)
     render json: positions
+  end
+
+  def total_profit_or_loss_today
+    total_profit_or_loss_today = Position.total_profit_or_loss_today
+    render json: total_profit_or_loss_today
   end
 
   private
