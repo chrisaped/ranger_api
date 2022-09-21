@@ -2,7 +2,7 @@ class Position < ApplicationRecord
   has_many :orders
   has_many :targets
 
-  enum status: %i[open closed canceled], _default: :open
+  enum status: %i[open closed canceled pending], _default: :pending
   enum side: %i[long short]
 
   validate :prevent_duplicate_open_position, on: :create

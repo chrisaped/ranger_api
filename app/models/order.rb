@@ -4,8 +4,13 @@ class Order < ApplicationRecord
   enum side: %i[buy sell]
 
   def update_position(json_obj)
-    position = Position.find_by(status: :open, symbol: symbol)
+    position = Position.where(status: :open, symbol: symbol).or(
+      Position.where(status: :pending, symbol: symbol)
+    ).first
+
     raise "position not found" if position.nil?
+
+    position.open! if position.pending?
 
     total_quantity = (json_obj.dig('position_qty').to_i).abs
     position.update_quantity_from_order(total_quantity)

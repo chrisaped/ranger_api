@@ -7,6 +7,11 @@ class PositionTest < ActiveSupport::TestCase
     end
   end
 
+  test "default status is pending" do
+    position = Position.new
+    assert position.pending?
+  end
+
   test "create_targets works" do 
     assert_difference -> { Position.count } => 1, -> { Target.count } => 4 do
       position = Position.create!(position_obj)

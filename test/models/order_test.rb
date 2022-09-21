@@ -22,6 +22,24 @@ class OrderTest < ActiveSupport::TestCase
     end
   end
 
+  test "update_position sets a pending position to open" do
+    new_attrs = { status: :pending }
+    position = Position.create!(position_obj(new_attrs))
+    assert position.pending?
+    
+    new_attrs = {
+      "order" => {
+        "symbol" => "AMC"
+      }
+    }
+    new_order_params = order_json('new_order', new_attrs)
+    order = Order.new(order_params(new_order_params))
+    order.update_position(new_order_params)
+    position = order.position
+
+    assert position.open?
+  end
+
   test "update_position updates position and creates targets for a new order" do
     position = Position.create!(position_obj)
     assert position.open?
