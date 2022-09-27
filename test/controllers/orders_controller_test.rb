@@ -18,6 +18,29 @@ class OrdersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 201, @response.status
   end
 
+  test "create_order does not create a duplicate order" do
+    Position.create!(position_obj)
+    
+    new_attrs = {
+      "order" => {
+        "symbol" => "AMC"
+      }
+    }
+    new_order_params = order_params(new_attrs)
+
+    assert_difference -> { Order.count } => 1 do
+      post create_order_path, params: new_order_params
+    end
+
+    assert_equal 201, @response.status
+
+    assert_difference -> { Order.count } => 0 do
+      post create_order_path, params: new_order_params
+    end
+
+    assert_equal 400, @response.status
+  end
+
   def order_params(attrs = {})
     file = File.join(Rails.root, 'test', 'data_samples', "new_order.json")
     json = File.read(file)
