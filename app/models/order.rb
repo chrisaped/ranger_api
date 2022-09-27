@@ -3,6 +3,8 @@ class Order < ApplicationRecord
 
   enum side: %i[buy sell]
 
+  validate :prevent_duplicate_order, on: :create
+
   def update_position(json_obj)
     position = Position.where(status: :open, symbol: symbol).or(
       Position.where(status: :pending, symbol: symbol)
@@ -29,6 +31,11 @@ class Order < ApplicationRecord
   end
 
   private
+
+  def prevent_duplicate_order
+    duplicate_order = Order.find_by(alpaca_order_id: alpaca_order_id)
+    errors.add(:alpaca_order_id, "can't create a duplicate order") if duplicate_order
+  end
 
   def create_or_update_position_targets(json_obj, total_quantity, position)
     if position.targets.length > 0

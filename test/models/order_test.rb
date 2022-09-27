@@ -2,14 +2,48 @@ require "test_helper"
 
 class OrderTest < ActiveSupport::TestCase
   test "can create a new order" do
-    position = positions(:one)
+    new_attrs = { status: :pending }
+    position = Position.create!(position_obj(new_attrs))
+    assert position.pending?
     
-    order = Order.new(order_obj)
+    new_attrs = {
+      "order" => {
+        "symbol" => "AMC"
+      }
+    }
+    new_order_params = order_json('new_order', new_attrs)
+    order = Order.new(order_params(new_order_params))
     order.position = position
 
     assert_difference -> { Order.count } => 1 do
       order.save!
     end
+  end
+
+  test "can not create a duplicate order" do
+    new_attrs = { status: :pending }
+    position = Position.create!(position_obj(new_attrs))
+    assert position.pending?
+    
+    new_attrs = {
+      "order" => {
+        "symbol" => "AMC"
+      }
+    }
+    new_order_params = order_json('new_order', new_attrs)
+    order = Order.new(order_params(new_order_params))
+    order.position = position
+
+    assert_difference -> { Order.count } => 1 do
+      order.save!
+    end
+
+    order = Order.new(order_params(new_order_params))
+    order.position = position
+
+    assert_raise(Exception) do
+      order.save!
+    end    
   end
 
   test "update_position raises an error if there is no position" do
@@ -249,7 +283,8 @@ class OrderTest < ActiveSupport::TestCase
       raw_order: params,
       quantity: params.dig('qty').to_i,
       price: params.dig('order', 'limit_price').to_d,
-      filled_avg_price: params.dig('order', 'filled_avg_price').to_d
+      filled_avg_price: params.dig('order', 'filled_avg_price').to_d,
+      alpaca_order_id: params.dig('order', 'id')
     }
   end
 end
