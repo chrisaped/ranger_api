@@ -4,7 +4,7 @@ class Target < ApplicationRecord
   enum side: %i[buy sell]
   enum category: %i[profit stop]
 
-  MULTIPLIERS = [1.0, 2.0, 3.0]
+  MULTIPLIERS = [0.5, 1.0, 1.5]
 
   before_create :add_side
 
