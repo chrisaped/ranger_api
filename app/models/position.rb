@@ -129,7 +129,7 @@ class Position < ApplicationRecord
   end
 
   def set_target_quantity(multiplier, last_multiplier, multipliers_length)
-    partial_quantity = (1/last_multiplier * initial_quantity).to_i
+    partial_quantity = (1/multipliers_length.to_f * initial_quantity).to_i
     remaining_quantity = initial_quantity - (partial_quantity * (multipliers_length - 1))
 
     multiplier == last_multiplier ? remaining_quantity : partial_quantity

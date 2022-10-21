@@ -43,9 +43,9 @@ class PositionTest < ActiveSupport::TestCase
     third_target = position.targets[2]
     stop_target = position.targets[3]
 
-    assert first_target.multiplier == 1.0
-    assert second_target.multiplier == 2.0
-    assert third_target.multiplier == 3.0
+    assert first_target.multiplier == Target::MULTIPLIERS[0]
+    assert second_target.multiplier == Target::MULTIPLIERS[1]
+    assert third_target.multiplier == Target::MULTIPLIERS[2]
     assert stop_target.multiplier.nil?
   end
 
@@ -73,10 +73,10 @@ class PositionTest < ActiveSupport::TestCase
     third_target = position.targets[2]
     stop_target = position.targets[3]
 
-    assert first_target.price == 30.50
-    assert second_target.price == 31.00
-    assert third_target.price == 31.50
-    assert stop_target.price == 29.50
+    assert first_target.price == calculate_sell_price(position, Target::MULTIPLIERS[0])
+    assert second_target.price == calculate_sell_price(position, Target::MULTIPLIERS[1])
+    assert third_target.price == calculate_sell_price(position, Target::MULTIPLIERS[2])
+    assert stop_target.price == position.initial_stop_price
   end
 
   test "create_targets creates 4 targets with the correct prices if it is a short position" do
@@ -92,10 +92,10 @@ class PositionTest < ActiveSupport::TestCase
     third_target = position.targets[2]
     stop_target = position.targets[3]
 
-    assert first_target.price == 29.50
-    assert second_target.price == 29.00
-    assert third_target.price == 28.50
-    assert stop_target.price == 30.50
+    assert first_target.price == calculate_sell_price(position, Target::MULTIPLIERS[0])
+    assert second_target.price == calculate_sell_price(position, Target::MULTIPLIERS[1])
+    assert third_target.price == calculate_sell_price(position, Target::MULTIPLIERS[2])
+    assert stop_target.price == position.initial_stop_price
   end
 
   test "create_targets creates 4 targets with the correct prices when initial_filled_avg_price is different from initial_price" do
@@ -108,10 +108,10 @@ class PositionTest < ActiveSupport::TestCase
     third_target = position.targets[2]
     stop_target = position.targets[3]
 
-    assert first_target.price == 30.70
-    assert second_target.price == 31.30
-    assert third_target.price == 31.90
-    assert stop_target.price == 29.50
+    assert first_target.price == calculate_sell_price(position, Target::MULTIPLIERS[0])
+    assert second_target.price == calculate_sell_price(position, Target::MULTIPLIERS[1])
+    assert third_target.price == calculate_sell_price(position, Target::MULTIPLIERS[2])
+    assert stop_target.price == position.initial_stop_price
   end
 
   test "create_targets creates 4 targets with the correct quantities with an odd number" do
@@ -524,6 +524,17 @@ class PositionTest < ActiveSupport::TestCase
 
   def get_just_position_state(position_state)
     position_state.select { |key, value| !['profit_targets', 'stop_target', 'gross_earnings'].include?(key) }
+  end
+
+  def calculate_sell_price(position, multiplier)
+    initial_filled_avg_price = position.initial_filled_avg_price
+    risk_per_share = position.risk_per_share
+
+    if position.long?
+      initial_filled_avg_price + (risk_per_share * multiplier)
+    else
+      initial_filled_avg_price - (risk_per_share * multiplier)
+    end
   end
 
   def position_obj(attrs = {})
