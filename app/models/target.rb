@@ -27,19 +27,36 @@ class Target < ApplicationRecord
     position.targets.select { |target| target.stop? }.first
   end
 
+  def find_position_profit_targets
+    position.targets.select { |target| target.profit? }.sort_by(&:multiplier)
+  end
+
   def update_stop(stop, total_quantity)
     stop.update_columns(
       quantity: total_quantity,
-      price: calculate_new_stop_price,
+      price: determine_new_stop_price,
       updated_at: Time.now
     )
   end
 
-  def calculate_new_stop_price
-    if position.long?
-      price - position.risk_per_share
+  def determine_new_stop_price
+    all_profit_targets = find_position_profit_targets
+
+    if all_profit_targets.first.id == id
+      position.initial_filled_avg_price
     else
-      price + position.risk_per_share
+      target_index = 0
+
+      all_profit_targets.each_with_index do |profit_target, index|
+        next if index == 0
+        if profit_target.id == id
+          target_index = index - 1
+        end
+      end
+
+      previous_profit_target = all_profit_targets[target_index]
+      
+      previous_profit_target.filled_avg_price
     end
   end
 

@@ -106,8 +106,8 @@ class OrderTest < ActiveSupport::TestCase
 
     sell_order = order_json('sell_order')
 
-    quantity = sell_order.dig('qty').to_i
-    price = sell_order.dig('price').to_d 
+    quantity = sell_order.dig('order', 'filled_qty').to_i
+    price = sell_order.dig('order', 'limit_price').to_d 
     side = sell_order.dig('order', 'side')
 
     stop_target = Target.find_by(position: position, filled: false, category: 'stop')
@@ -120,7 +120,9 @@ class OrderTest < ActiveSupport::TestCase
       symbol: sell_order.dig('order', 'symbol'),
       raw_order: sell_order,
       quantity: quantity,
-      price: price
+      price: price,
+      filled_avg_price: sell_order.dig('order', 'filled_avg_price').to_d,
+      alpaca_order_id: sell_order.dig('order', 'id')
     }
     order = Order.new(order_attrs)
     
@@ -131,7 +133,7 @@ class OrderTest < ActiveSupport::TestCase
     position = order.position
     total_quantity = sell_order.dig('position_qty').to_i
     assert position.current_quantity == total_quantity
-    
+
     first_profit_target = find_target(quantity, price, position, true, side, 'profit')
     assert first_profit_target.filled?
     
@@ -141,7 +143,7 @@ class OrderTest < ActiveSupport::TestCase
     stop_target = Target.find_by(position: position, filled: false, category: 'stop')
     assert_not stop_target.filled?
     assert stop_target.quantity == position.current_quantity
-    assert stop_target.price == (price - position.risk_per_share)
+    assert stop_target.price == position.initial_filled_avg_price
   end
 
   test 'update_position sets stop target as filled' do
